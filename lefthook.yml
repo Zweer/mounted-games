@@ -1,0 +1,16 @@
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "*.{js,jsx,ts,tsx,json,jsonc,css}"
+      run: npx biome check --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+    lockfile-lint:
+      glob: "package-lock.json"
+      run: npx lockfile-lint --path package-lock.json --type npm --validate-https --allowed-hosts npm
+    typecheck:
+      run: npx tsc --noEmit
+
+commit-msg:
+  commands:
+    commitlint:
+      run: npx commitlint --edit {1}
