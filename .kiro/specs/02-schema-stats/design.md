@@ -1,9 +1,17 @@
 # Schema & Stats Design
 
-Concrete relational model for `db/schema.ts` (Drizzle, vendor-neutral Postgres).
+Concrete relational model for the Drizzle schema (vendor-neutral Postgres).
 Notation is Drizzle-oriented pseudo-schema; final column types tightened at
 implementation. Auth tables (`user`/`session`/`account`/`verification` with
 `user.role`/`user.status`) already exist from 00-setup and are not repeated here.
+
+**File organization (implemented).** One file per domain under `db/models/*.ts`
+(`enums`, `auth`, `reference`, `competition`, `participant`, `result`, `ingestion`,
+`crowdsource`); the Drizzle relation graph is centralized in `db/relations.ts` (not
+colocated, to avoid ESM module cycles from bidirectional cross-domain relations —
+foreign keys stay on the table definitions). `db/schema.ts` is a barrel re-exporting
+every model + relations, so the entry point for drizzle-kit, `@/db` and the Better
+Auth adapter stays `@/db/schema`.
 
 ## Design principles
 

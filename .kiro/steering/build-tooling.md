@@ -29,7 +29,9 @@ npm test              # vitest
 ## Database
 
 - **Drizzle ORM** with `@neondatabase/serverless`
-- Schema: `db/schema.ts`; migrations output in `db/`
+- Schema: one file per domain in `db/models/*.ts`, relation graph in `db/relations.ts`,
+  re-exported by the barrel `db/schema.ts` (the entry point for drizzle-kit, `@/db` and
+  Better Auth). Migrations output in `db/`.
 - `drizzle-kit push` for development; `generate` + `migrate` for production
 - Keep the schema **vendor-neutral Postgres** (no Neon/Supabase-specific features)
   so the DB stays portable.
