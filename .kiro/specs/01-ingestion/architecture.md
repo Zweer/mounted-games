@@ -25,9 +25,11 @@
 └───────────────┬─────────────────────────────────────────────┘
                 ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  NORMALIZE → UPSERT → DEDUP                                  │
-│  raw → domain records; idempotent upsert on source IDs       │
-│  update target.last_scraped_at                               │
+│  NORMALIZE → UPSERT                                          │
+│  raw → domain records (polymorphic participant:              │
+│  team | individual | pair); attach scores by label-join      │
+│  within the event; idempotent upsert on per-source ids;      │
+│  update target.last_scraped_at. No cross-source dedup.       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -58,16 +60,20 @@ db/schema.ts                   # scrape_targets + domain tables (finalized post-
   retried next tick instead of failing the whole invocation.
 - **Live-window gating** — outside a competition the poller returns immediately, so a
   1-per-minute external ping costs almost nothing off-season and is polite to the sources.
-- **Idempotent upserts on stable source IDs** — re-running a tick never duplicates data;
-  this also makes cross-source dedup tractable when a competition appears on both.
+- **Idempotent upserts on stable per-source IDs** — re-running a tick never duplicates
+  data (mg `event id`/`team_id`; pmg `post_id` + normalized label). No cross-source
+  dedup: the two sources never share a competition.
 - **`scrape_targets` table** — the unit of work (source, url, kind, is_live,
   last_scraped_at); the poller reads/writes it, so "what to scrape next" is data, not code.
 - **Migration path** — if Vercel's duration limit bites on big live events, move the
   poller body to an AWS Lambda on an EventBridge 1-min schedule, reusing the same
   `lib/scrapers` + `lib/ingest` code and writing to the same Neon DB.
 
-## Open (pending discovery)
+## Resolved by discovery (docs/sources/*.md)
 
-- Whether mg-scoreboard exposes a JSON/AJAX live endpoint (would replace HTML parsing).
-- The exact pmglivescore XML import format (potential cleanest source).
-- Final domain table shapes — decided once `docs/sources/*.md` is complete.
+- **No JSON/AJAX live endpoint on mg-scoreboard** — HTML re-GET is the live source.
+- **pmglivescore XML import is login-gated and unnecessary** — the `live-*` HTML carries
+  scores, phases, heats and full rosters (`window.iscrittiGlobali`).
+- **Participant is polymorphic** (team | individual | pair); roster visibility differs
+  by source (mg teams/pairs opaque, no horses; pmg full rosters + ponies everywhere).
+- **Final domain table shapes** are decided in `02-schema-stats` on top of this.
