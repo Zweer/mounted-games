@@ -51,5 +51,49 @@
   "contribute": {
     "title": "Contributors area",
     "body": "This area is reserved for approved contributors. The crowdsourcing flow — filling the gaps the source portals hide — arrives in a later milestone."
+  },
+  "common": {
+    "viewAll": "View all",
+    "loading": "Loading…"
+  },
+  "searchResults": {
+    "resultsFor": "Results for “{q}”",
+    "empty": "No results for “{q}”.",
+    "prompt": "Type to search athletes, horses, teams and competitions.",
+    "groups": {
+      "athletes": "Athletes",
+      "horses": "Horses",
+      "teams": "Teams",
+      "competitions": "Competitions"
+    }
+  },
+  "archive": {
+    "title": "Competitions archive",
+    "empty": "No competitions found.",
+    "categoryCount": "{count, plural, one {# category} other {# categories}}",
+    "filters": {
+      "all": "All",
+      "nation": "Nation",
+      "format": "Format",
+      "clear": "Clear"
+    }
+  },
+  "competition": {
+    "categories": "Categories",
+    "phases": "Phases",
+    "viewLive": "View live",
+    "viewResults": "Results"
+  },
+  "entity": {
+    "athlete": "Athlete",
+    "horse": "Horse",
+    "team": "Team",
+    "nation": "Nation",
+    "participation": "Participation",
+    "empty": "No participation recorded yet.",
+    "stats": {
+      "appearances": "Appearances",
+      "bestPlacement": "Best placement"
+    }
   }
 }

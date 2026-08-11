@@ -1,57 +1,75 @@
-import { Award, CalendarDays, Clock, Search } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Award, Clock } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
-import { Link } from "@/i18n/navigation";
+import { HomeLiveCard } from "@/components/features/home-live-card";
+import { RecentResultItem } from "@/components/features/recent-result-item";
+import { SearchBox } from "@/components/features/search-box";
+import { getLiveCategories, getRecentResults } from "@/lib/queries/home";
 
-export default function HomePage(): ReactNode {
-  const t = useTranslations();
+export const dynamic = "force-dynamic";
+
+export default async function HomePage(): Promise<ReactNode> {
+  const t = await getTranslations();
+  const [liveCategories, recentResults] = await Promise.all([
+    getLiveCategories(),
+    getRecentResults(10),
+  ]);
+
+  const hasLive = liveCategories.length > 0;
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Off-season empty state (Option C · Frame 2). Real live/recent data
-          arrives with the read layer in a later slice. */}
-      <section className="flex flex-col items-center gap-2 pt-8 pb-2 text-center">
-        <span className="mb-2 flex size-16 items-center justify-center rounded-full border-2 border-cream-deep text-brass">
-          <Award className="size-8" aria-hidden />
-        </span>
-        <h2 className="font-semibold font-serif text-green text-xl">
-          {t("home.empty.title")}
-        </h2>
-        <p className="max-w-xs text-ink-soft text-sm">{t("home.empty.body")}</p>
-      </section>
-
-      {/* Next competition banner */}
-      <div className="relative flex items-center gap-3 overflow-hidden rounded-2xl bg-green px-4 py-4 text-cream">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-brass-light text-brass-light">
-          <CalendarDays className="size-5" aria-hidden />
-        </div>
-        <div>
-          <div className="font-bold text-[10px] text-brass-light uppercase tracking-[0.16em]">
-            {t("home.next.label")}
+      {/* ── LIVE section or off-season empty state ── */}
+      {hasLive ? (
+        <section>
+          <h2 className="mb-3 flex items-center gap-2 font-serif text-[13px] font-semibold uppercase tracking-[0.16em] text-green">
+            <span className="relative flex size-[9px]" aria-hidden>
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-live/50" />
+              <span className="relative inline-flex size-[9px] rounded-full bg-live" />
+            </span>
+            {t("live.now")}
+          </h2>
+          <div className="flex flex-col gap-3">
+            {liveCategories.map((cat) => (
+              <HomeLiveCard key={cat.categoryId} category={cat} />
+            ))}
           </div>
-          <div className="text-cream/80 text-sm">{t("home.next.none")}</div>
-        </div>
-      </div>
+        </section>
+      ) : (
+        <section className="flex flex-col items-center gap-2 pt-8 pb-2 text-center">
+          <span className="mb-2 flex size-16 items-center justify-center rounded-full border-2 border-cream-deep text-brass">
+            <Award className="size-8" aria-hidden />
+          </span>
+          <h2 className="font-serif text-xl font-semibold text-green">
+            {t("home.empty.title")}
+          </h2>
+          <p className="max-w-xs text-sm text-ink-soft">
+            {t("home.empty.body")}
+          </p>
+        </section>
+      )}
 
-      {/* Recent results */}
+      {/* ── Recent results ── */}
       <section className="flex flex-col gap-2">
-        <h3 className="flex items-center gap-2 font-semibold font-serif text-ink-soft text-xs uppercase tracking-[0.16em]">
+        <h3 className="flex items-center gap-2 font-serif text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
           <Clock className="size-4" aria-hidden />
           {t("home.recentResults")}
         </h3>
-        <div className="rounded-xl border border-line bg-card px-4 py-4 text-ink-soft text-sm">
-          {t("home.recentEmpty")}
-        </div>
+        {recentResults.length > 0 ? (
+          <div className="flex flex-col gap-2.5">
+            {recentResults.map((r) => (
+              <RecentResultItem key={r.categoryId} result={r} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-line bg-card px-4 py-4 text-sm text-ink-soft">
+            {t("home.recentEmpty")}
+          </div>
+        )}
       </section>
 
-      {/* Search entry */}
-      <Link
-        href="/search"
-        className="flex items-center gap-2 rounded-xl border border-line bg-card px-3 py-3 text-ink-soft text-sm transition-colors hover:border-brass"
-      >
-        <Search className="size-4 shrink-0 text-brass" aria-hidden />
-        {t("search.placeholder")}
-      </Link>
+      {/* ── Search box ── */}
+      <SearchBox />
     </div>
   );
 }

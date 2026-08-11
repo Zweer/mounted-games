@@ -51,5 +51,49 @@
   "contribute": {
     "title": "Area contributori",
     "body": "Quest'area è riservata ai contributori approvati. Il flusso di crowdsourcing — per colmare i dati che i portali di origine nascondono — arriverà in una milestone successiva."
+  },
+  "common": {
+    "viewAll": "Vedi tutti",
+    "loading": "Caricamento…"
+  },
+  "searchResults": {
+    "resultsFor": "Risultati per «{q}»",
+    "empty": "Nessun risultato per «{q}».",
+    "prompt": "Digita per cercare atleti, cavalli, squadre e gare.",
+    "groups": {
+      "athletes": "Atleti",
+      "horses": "Cavalli",
+      "teams": "Squadre",
+      "competitions": "Gare"
+    }
+  },
+  "archive": {
+    "title": "Archivio gare",
+    "empty": "Nessuna gara trovata.",
+    "categoryCount": "{count, plural, one {# categoria} other {# categorie}}",
+    "filters": {
+      "all": "Tutte",
+      "nation": "Nazione",
+      "format": "Formato",
+      "clear": "Azzera"
+    }
+  },
+  "competition": {
+    "categories": "Categorie",
+    "phases": "Fasi",
+    "viewLive": "Vedi live",
+    "viewResults": "Risultati"
+  },
+  "entity": {
+    "athlete": "Atleta",
+    "horse": "Cavallo",
+    "team": "Squadra",
+    "nation": "Nazione",
+    "participation": "Partecipazioni",
+    "empty": "Nessuna partecipazione registrata.",
+    "stats": {
+      "appearances": "Presenze",
+      "bestPlacement": "Miglior piazzamento"
+    }
   }
 }
