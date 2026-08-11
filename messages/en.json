@@ -16,6 +16,23 @@
   "live": {
     "now": "LIVE NOW"
   },
+  "format": {
+    "team": "Teams",
+    "individual": "Individual",
+    "pair": "Pairs"
+  },
+  "liveScoreboard": {
+    "live": "LIVE",
+    "updated": "{seconds, plural, =0 {updated just now} other {updated # s ago}}",
+    "standings": "Standings",
+    "games": "Games",
+    "phaseSum": "{phase} total",
+    "phases": "Phases",
+    "tapHint": "Tap a row to see the per-game breakdown",
+    "empty": "No standings available yet.",
+    "error": "Couldn't refresh the data, retrying…",
+    "noGames": "Per-game breakdown not available yet."
+  },
   "home": {
     "recentResults": "Recent results",
     "recentEmpty": "No recent results at the moment.",

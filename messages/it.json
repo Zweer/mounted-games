@@ -16,6 +16,23 @@
   "live": {
     "now": "LIVE ORA"
   },
+  "format": {
+    "team": "Squadre",
+    "individual": "Individuale",
+    "pair": "Coppie"
+  },
+  "liveScoreboard": {
+    "live": "LIVE",
+    "updated": "{seconds, plural, =0 {aggiornato ora} other {aggiornato # s fa}}",
+    "standings": "Classifica",
+    "games": "Giochi",
+    "phaseSum": "Somma {phase}",
+    "phases": "Fasi",
+    "tapHint": "Tocca una riga per il dettaglio dei giochi",
+    "empty": "Nessuna classifica disponibile.",
+    "error": "Impossibile aggiornare i dati, riprovo…",
+    "noGames": "Dettaglio giochi non ancora disponibile."
+  },
   "home": {
     "recentResults": "Risultati recenti",
     "recentEmpty": "Nessun risultato recente al momento.",

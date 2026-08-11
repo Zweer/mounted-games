@@ -80,6 +80,15 @@
   --line: #e2d9c2;
   --live: #b91c1c;
 
+  /* Podium medal tints (rosette top-3) — kept as tokens so components never
+     hardcode gold/silver/bronze. Gold intentionally aligns with the brass. */
+  --podium-gold: #d4a72c;
+  --podium-gold-deep: #b8860b;
+  --podium-silver: #e6e6e6;
+  --podium-silver-deep: #9a9a9a;
+  --podium-bronze: #cd7f32;
+  --podium-bronze-deep: #96551f;
+
   /* ── shadcn semantic tokens mapped onto the heritage palette (light) ── */
   --background: var(--cream);
   --foreground: var(--ink);
