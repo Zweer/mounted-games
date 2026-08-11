@@ -95,7 +95,52 @@ export const mgScoreboardScraper: Scraper = {
   discoverTargets(html: string, ctx: ScrapeContext): DiscoveredTarget[] {
     return discoverMgTargets(html, ctx);
   },
+
+  entryKind: "toplist",
+
+  async listEvents(signal: AbortSignal): Promise<DiscoveredTarget[]> {
+    // Crawl the archive + upcoming + current-competitions lists; every event is
+    // seeded as a Toplist entry target (its sub-phases are discovered later,
+    // when the poller parses that Toplist page).
+    const lists = [
+      "index.php?seite=archiv",
+      "index.php?seite=upcoming",
+      "index.php",
+    ];
+    const ids = new Set<string>();
+    for (const path of lists) {
+      try {
+        const html = await fetchHtml(`${MG_BASE}/${path}`, signal, {
+          Cookie: "language=en",
+        });
+        for (const id of parseEventIds(html)) ids.add(id);
+      } catch {
+        // A missing/failed list must not abort the whole seed.
+      }
+    }
+    return [...ids].map((id) => ({
+      kind: "toplist",
+      url: `${MG_BASE}/?seite=show_event&id=${id}&seite2=event_points_list_show`,
+    }));
+  },
 };
+
+const MG_BASE = (
+  process.env.MG_SCOREBOARD_BASE_URL ?? "https://www.mg-scoreboard.de"
+).replace(/\/$/, "");
+
+/** Collect every distinct `show_event` event id from an archive/list page. */
+export function parseEventIds(html: string): string[] {
+  const $ = load(html);
+  const ids = new Set<string>();
+  $('a[href*="seite=show_event"]').each((_, a) => {
+    const id = $(a)
+      .attr("href")
+      ?.match(/[?&]id=(\d+)/)?.[1];
+    if (id) ids.add(id);
+  });
+  return [...ids];
+}
 
 // ---------------------------------------------------------------------------
 // Target discovery (phase/view enumeration from the event tab bar)

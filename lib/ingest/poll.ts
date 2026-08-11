@@ -1,4 +1,5 @@
 import { getScraper } from "@/lib/scrapers/registry";
+import { syncTargets } from "./discover";
 import { hasLiveTargets } from "./live-window";
 import { markScraped, selectStaleLiveTargets } from "./targets";
 import { persistScrape } from "./upsert";
@@ -43,12 +44,17 @@ export async function runPollTick(
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const html = await scraper.fetch(target.url, controller.signal);
-      const scrape = scraper.parse(html, {
-        url: target.url,
-        kind: target.kind,
-      });
+      const ctx = { url: target.url, kind: target.kind };
+      const scrape = scraper.parse(html, ctx);
       await persistScrape(scrape);
       await markScraped(target.id);
+      // Parsing an entry page also seeds its sub-phase targets, inheriting the
+      // event's live flag so the whole event is polled while it runs.
+      if (target.kind === scraper.entryKind) {
+        await syncTargets(target.source, scraper.discoverTargets(html, ctx), {
+          isLive: target.isLive,
+        });
+      }
       processed += 1;
     } catch {
       // Slow/failed target: skip, retry next tick.

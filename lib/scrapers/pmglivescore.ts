@@ -72,7 +72,37 @@ export const pmgLivescoreScraper: Scraper = {
   discoverTargets(html: string, ctx: ScrapeContext): DiscoveredTarget[] {
     return discoverPmgTargets(html, ctx);
   },
+
+  entryKind: "classifica",
+
+  async listEvents(signal: AbortSignal): Promise<DiscoveredTarget[]> {
+    // Enumerate every category (post) across the three custom post types via
+    // wp-json; each becomes a classifica entry target keyed by its post_id.
+    const cpts = ["squadre-cpt", "individuali-cpt", "coppie-cpt"];
+    const ids = new Set<number>();
+    for (const cpt of cpts) {
+      try {
+        const json = await fetchHtml(
+          `${PMG_BASE}/wp-json/wp/v2/${cpt}?per_page=100&_fields=id`,
+          signal,
+        );
+        for (const row of JSON.parse(json) as Array<{ id?: number }>) {
+          if (typeof row.id === "number") ids.add(row.id);
+        }
+      } catch {
+        // A missing/failed post type must not abort the whole seed.
+      }
+    }
+    return [...ids].map((id) => ({
+      kind: "classifica",
+      url: `${PMG_BASE}/live-classifica-generale/?post_id=${id}`,
+    }));
+  },
 };
+
+const PMG_BASE = (
+  process.env.PMG_LIVESCORE_BASE_URL ?? "https://pmglivescore.altervista.org"
+).replace(/\/$/, "");
 
 /* -------------------------------------------------------------------------- */
 /* Target discovery (phase-view enumeration from the live nav bar)             */

@@ -135,4 +135,14 @@ export interface Scraper {
    * fixtures); the ingest layer persists the result via `syncTargets`.
    */
   discoverTargets(html: string, ctx: ScrapeContext): DiscoveredTarget[];
+  /**
+   * The entry-page kind for this source. When the poller parses a target of
+   * this kind it also runs `discoverTargets` to seed the event's sub-phases.
+   */
+  readonly entryKind: string;
+  /**
+   * List every known event as an entry-kind target (bootstrap seeding): mg
+   * crawls the archive/upcoming/current lists, pmg enumerates the wp-json CPTs.
+   */
+  listEvents(signal: AbortSignal): Promise<DiscoveredTarget[]>;
 }
