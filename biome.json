@@ -14,7 +14,8 @@
       "!.next",
       "!db/meta",
       "!app/globals.css",
-      "!**/*.sql"
+      "!**/*.sql",
+      "!lib/scrapers/__fixtures__"
     ]
   },
   "formatter": {
