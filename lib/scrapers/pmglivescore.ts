@@ -5,6 +5,7 @@ import { cleanDisplay, normalizeKey, parseScore } from "../normalize";
 import { fetchHtml } from "./http";
 import type {
   CompetitionFormat,
+  DiscoveredTarget,
   NationRef,
   NormalizedCategory,
   NormalizedCompetition,
@@ -67,7 +68,62 @@ export const pmgLivescoreScraper: Scraper = {
       results,
     };
   },
+
+  discoverTargets(html: string, ctx: ScrapeContext): DiscoveredTarget[] {
+    return discoverPmgTargets(html, ctx);
+  },
 };
+
+/* -------------------------------------------------------------------------- */
+/* Target discovery (phase-view enumeration from the live nav bar)             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Enumerate a category's phase views from the `live-*` nav bar
+ * (`a.aux-item-content`): `classifica` (`live-classifica-generale`), one
+ * `batteria` per `live-sessione<S>-batteria<B>`, `semifinale`
+ * (`live-semifinale-*`) and `finale` (`live-finale-*`). Each URL is rebuilt
+ * canonically as `<origin>/<slug>/?post_id=<id>` carrying the `post_id` from
+ * `ctx.url` (nav hrefs are inconsistent about carrying it), then de-duplicated
+ * by URL. Non-result views (Iscritti, Giochi, Info Gara, Home) are skipped.
+ */
+function discoverPmgTargets(
+  html: string,
+  ctx: ScrapeContext,
+): DiscoveredTarget[] {
+  const postId = extractPostId(ctx.url);
+  if (!postId) return [];
+  const origin = new URL(ctx.url).origin;
+  const $ = cheerio.load(html);
+
+  const targets: DiscoveredTarget[] = [];
+  const seen = new Set<string>();
+  const push = (kind: string, slug: string): void => {
+    const url = `${origin}/${slug}/?post_id=${postId}`;
+    if (seen.has(url)) return;
+    seen.add(url);
+    targets.push({ kind, url });
+  };
+
+  $("a.aux-item-content").each((_, a) => {
+    const href = $(a).attr("href");
+    if (!href) return;
+    const slug = href.match(/\/(live-[a-z0-9-]+)\/?/i)?.[1]?.toLowerCase();
+    if (!slug) return;
+
+    if (slug === "live-classifica-generale") {
+      push("classifica", slug);
+    } else if (/^live-sessione\d+-batteria\d+$/.test(slug)) {
+      push("batteria", slug);
+    } else if (slug.startsWith("live-semifinale-")) {
+      push("semifinale", slug);
+    } else if (slug.startsWith("live-finale-")) {
+      push("finale", slug);
+    }
+  });
+
+  return targets;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Inline script globals                                                       */

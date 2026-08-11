@@ -1,0 +1,1 @@
+ALTER TABLE "scrape_target" ADD CONSTRAINT "scrape_target_url_uq" UNIQUE("url");

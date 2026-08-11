@@ -190,3 +190,57 @@ describe("mg-scoreboard parse — dispatch", () => {
     ).toThrow(/unsupported/);
   });
 });
+
+const discover = (name: string, ctx: ScrapeContext) =>
+  mgScoreboardScraper.discoverTargets(read(name), ctx);
+
+describe("mg-scoreboard discoverTargets", () => {
+  it("enumerates a Team event: toplist, teams, sessions and finals (no semifinal)", () => {
+    const targets = discover("team-toplist-4795.html", {
+      url: `${BASE}?seite=show_event&id=4795&seite2=event_points_list_show`,
+      kind: "toplist",
+    });
+
+    const byKind = (k: string) => targets.filter((t) => t.kind === k);
+    expect(byKind("toplist")).toHaveLength(1);
+    expect(byKind("teams")).toHaveLength(1);
+    expect(byKind("session")).toHaveLength(4);
+    expect(byKind("semifinal")).toHaveLength(0);
+    expect(byKind("final")).toHaveLength(2);
+
+    const urls = targets.map((t) => t.url);
+    expect(urls).toContain(`${BASE}?seite=show_event&id=4795&session=1`);
+    expect(urls).toContain(`${BASE}?seite=show_event&id=4795&session=4`);
+    expect(urls).toContain(`${BASE}?seite=show_event&id=4795&final=A&heat=1`);
+    expect(urls).toContain(`${BASE}?seite=show_event&id=4795&final=A&heat=2`);
+    expect(urls).toContain(
+      `${BASE}?seite=show_event&id=4795&seite2=event_teams_show`,
+    );
+
+    // De-duped by URL.
+    expect(new Set(urls).size).toBe(urls.length);
+  });
+
+  it("enumerates an Individual event: semifinal + tiered finals A..F", () => {
+    const targets = discover("individual-toplist-4629.html", {
+      url: `${BASE}?seite=show_event&id=4629&seite2=event_points_list_show`,
+      kind: "toplist",
+    });
+
+    expect(targets.filter((t) => t.kind === "session")).toHaveLength(3);
+    expect(targets.filter((t) => t.kind === "semifinal")).toHaveLength(1);
+    // Tiered finals: one heat each of F..A.
+    expect(targets.filter((t) => t.kind === "final")).toHaveLength(6);
+
+    const urls = targets.map((t) => t.url);
+    expect(urls).toContain(`${BASE}?seite=show_event&id=4629&final=semifinal`);
+    expect(urls).toContain(`${BASE}?seite=show_event&id=4629&final=A&heat=1`);
+    expect(urls).toContain(`${BASE}?seite=show_event&id=4629&final=F&heat=1`);
+  });
+
+  it("returns nothing when the URL carries no event id", () => {
+    expect(
+      discover("team-toplist-4795.html", { url: BASE, kind: "toplist" }),
+    ).toEqual([]);
+  });
+});

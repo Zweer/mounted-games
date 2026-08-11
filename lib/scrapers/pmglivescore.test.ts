@@ -161,3 +161,55 @@ describe("pmgLivescoreScraper.parse — dispatch guard", () => {
     ).toThrow(/unsupported ctx.kind/);
   });
 });
+
+describe("pmgLivescoreScraper.discoverTargets", () => {
+  it("enumerates a COPPIE category: classifica, batterie, semifinale, finale (post_id 47264)", () => {
+    // Arrange / Act
+    const targets = pmgLivescoreScraper.discoverTargets(
+      load("coppie-classifica"),
+      ctx("live-classifica-generale", "classifica", 47264),
+    );
+    // Assert
+    const byKind = (k: string) => targets.filter((t) => t.kind === k);
+    expect(byKind("classifica")).toHaveLength(1);
+    expect(byKind("batteria")).toHaveLength(3);
+    expect(byKind("semifinale")).toHaveLength(1);
+    expect(byKind("finale")).toHaveLength(1);
+
+    const urls = targets.map((t) => t.url);
+    expect(urls).toContain(`${BASE}/live-sessione1-batteria5/?post_id=47264`);
+    expect(urls).toContain(`${BASE}/live-sessione3-batteria5/?post_id=47264`);
+    expect(urls).toContain(`${BASE}/live-finale-a/?post_id=47264`);
+    expect(urls).toContain(`${BASE}/live-semifinale-inglese/?post_id=47264`);
+    // Non-result views (Iscritti / Giochi / Info Gara) are excluded.
+    expect(urls.some((u) => u.includes("giochi"))).toBe(false);
+    expect(urls.some((u) => u.includes("iscritti"))).toBe(false);
+    // De-duped by URL.
+    expect(new Set(urls).size).toBe(urls.length);
+  });
+
+  it("enumerates a SQUADRE category with no semifinale (post_id 45941)", () => {
+    const targets = pmgLivescoreScraper.discoverTargets(
+      load("squadre-classifica"),
+      ctx("live-classifica-generale", "classifica", 45941),
+    );
+
+    expect(targets.filter((t) => t.kind === "batteria")).toHaveLength(3);
+    expect(targets.filter((t) => t.kind === "semifinale")).toHaveLength(0);
+    expect(targets.filter((t) => t.kind === "finale")).toHaveLength(1);
+
+    const urls = targets.map((t) => t.url);
+    expect(urls).toContain(`${BASE}/live-sessione1-batteria2/?post_id=45941`);
+    expect(urls).toContain(`${BASE}/live-finale-a/?post_id=45941`);
+    // post_id is carried onto the classifica link even though its nav href omits it.
+    expect(urls).toContain(`${BASE}/live-classifica-generale/?post_id=45941`);
+  });
+
+  it("returns nothing when the URL carries no post_id", () => {
+    const targets = pmgLivescoreScraper.discoverTargets(
+      load("coppie-classifica"),
+      { url: `${BASE}/live-classifica-generale/`, kind: "classifica" },
+    );
+    expect(targets).toEqual([]);
+  });
+});

@@ -112,10 +112,27 @@ export interface ScrapeContext {
   kind: string;
 }
 
+/**
+ * One scrape target discovered from an event/competition page's phase nav.
+ * `kind` matches the `ScrapeContext.kind` the target should later be parsed
+ * with; `url` is an absolute, canonical page URL (the idempotency key in
+ * `scrape_target`). Produced by `Scraper.discoverTargets`.
+ */
+export interface DiscoveredTarget {
+  kind: string;
+  url: string;
+}
+
 export interface Scraper {
   readonly source: SourceKind;
   /** Fetch raw HTML for a URL with a per-fetch abort signal (timeout). */
   fetch(url: string, signal: AbortSignal): Promise<string>;
   /** Pure parse of raw HTML → normalized records (unit-tested vs fixtures). */
   parse(html: string, ctx: ScrapeContext): NormalizedScrape;
+  /**
+   * Enumerate the phase/view pages linked from an event page's nav bar into
+   * canonical, de-duplicated `scrape_target` candidates. Pure (unit-tested vs
+   * fixtures); the ingest layer persists the result via `syncTargets`.
+   */
+  discoverTargets(html: string, ctx: ScrapeContext): DiscoveredTarget[];
 }

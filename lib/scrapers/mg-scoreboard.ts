@@ -4,6 +4,7 @@ import { cleanDisplay, parseScore } from "../normalize";
 import { fetchHtml } from "./http";
 import type {
   CompetitionFormat,
+  DiscoveredTarget,
   NationRef,
   NormalizedCategory,
   NormalizedCompetition,
@@ -90,7 +91,96 @@ export const mgScoreboardScraper: Scraper = {
       results,
     };
   },
+
+  discoverTargets(html: string, ctx: ScrapeContext): DiscoveredTarget[] {
+    return discoverMgTargets(html, ctx);
+  },
 };
+
+// ---------------------------------------------------------------------------
+// Target discovery (phase/view enumeration from the event tab bar)
+// ---------------------------------------------------------------------------
+
+/** Canonical event-page base (query stripped) from the fetched URL. */
+function eventBaseUrl(url: string): string {
+  return url.split("?")[0];
+}
+
+function eventUrl(base: string, eventId: string, params: string): string {
+  return `${base}?seite=show_event&id=${eventId}&${params}`;
+}
+
+/**
+ * Enumerate the event's phase/view pages from the `ul.nav.nav-tabs` tab bar:
+ * `toplist`, `teams`, one `session` per `session=<n>`, `semifinal`
+ * (`final=semifinal`) and one `final` per `final=<tier>&heat=<h>` (tier A..Z).
+ * URLs are rebuilt canonically from the event base + id (never hard-coded), so
+ * the relative tab hrefs are normalized and de-duplicated by URL. Anchors for
+ * other events (bottom pager, nav dropdowns) are excluded by scoping to the tab
+ * bar and matching the event id in `ctx.url`.
+ */
+function discoverMgTargets(
+  html: string,
+  ctx: ScrapeContext,
+): DiscoveredTarget[] {
+  const $ = load(html);
+  const eventId = parseEventId(ctx.url);
+  if (!eventId) return [];
+  const base = eventBaseUrl(ctx.url);
+
+  let hasToplist = false;
+  let hasTeams = false;
+  let hasSemifinal = false;
+  const sessions = new Set<number>();
+  const finals = new Set<string>(); // `${tier}\u0000${heat}`
+
+  $("ul.nav.nav-tabs a").each((_, a) => {
+    const href = $(a).attr("href");
+    if (!href) return;
+    // Only this event's tabs (defensive against stray same-selector anchors).
+    if ((href.match(/[?&]id=(\d+)/)?.[1] ?? "") !== eventId) return;
+
+    const seite2 = href.match(/[?&]seite2=([a-z_]+)/i)?.[1];
+    if (seite2 === "event_points_list_show") hasToplist = true;
+    if (seite2 === "event_teams_show") hasTeams = true;
+
+    const finalParam = href.match(/[?&]final=([^&]+)/)?.[1];
+    if (finalParam) {
+      if (finalParam.toLowerCase() === "semifinal") {
+        hasSemifinal = true;
+      } else {
+        const heat = href.match(/[?&]heat=(\d+)/)?.[1];
+        if (heat) finals.add(`${finalParam.toUpperCase()}\u0000${heat}`);
+      }
+      return;
+    }
+
+    const session = href.match(/[?&]session=(\d+)/)?.[1];
+    if (session) sessions.add(Number(session));
+  });
+
+  const targets: DiscoveredTarget[] = [];
+  const seen = new Set<string>();
+  const push = (kind: string, params: string): void => {
+    const url = eventUrl(base, eventId, params);
+    if (seen.has(url)) return;
+    seen.add(url);
+    targets.push({ kind, url });
+  };
+
+  if (hasToplist) push("toplist", "seite2=event_points_list_show");
+  if (hasTeams) push("teams", "seite2=event_teams_show");
+  for (const n of [...sessions].sort((a, b) => a - b)) {
+    push("session", `session=${n}`);
+  }
+  if (hasSemifinal) push("semifinal", "final=semifinal");
+  for (const key of [...finals].sort()) {
+    const [tier, heat] = key.split("\u0000");
+    push("final", `final=${tier}&heat=${heat}`);
+  }
+
+  return targets;
+}
 
 // ---------------------------------------------------------------------------
 // Cell extraction

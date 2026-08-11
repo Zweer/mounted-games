@@ -54,5 +54,8 @@ export const scrapeTarget = pgTable(
     isLive: boolean("is_live").default(false).notNull(),
     lastScrapedAt: timestamp("last_scraped_at"),
   },
-  (t) => [index("scrape_target_live_stale_idx").on(t.isLive, t.lastScrapedAt)],
+  (t) => [
+    unique("scrape_target_url_uq").on(t.url),
+    index("scrape_target_live_stale_idx").on(t.isLive, t.lastScrapedAt),
+  ],
 );
