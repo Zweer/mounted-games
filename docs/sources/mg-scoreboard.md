@@ -156,13 +156,15 @@ Column **count/labels vary by event** (`Points Session n` vs `Points Heat n`) �
 columns off the header `<th>` text, do not hard-code indices.
 
 **Individual events (id=4629):** identical table shape, but the `Team` column holds a
-**rider full name** (`Chloe LORENZON`, `CJ O’Brien`) instead of `<nation> <category>`,
-and there is **no flag `<img>`** in the cell. Names are inconsistently cased (mixed
-case vs ALL CAPS: `Chloe Morse` vs `MILA DEMARQUE`) and carry accents / curly
-apostrophes (`Lola LE MÉLINER`, `CJ O’Brien`, U+2019) → **normalize** (case-fold,
-NFC, straighten `’`) before using the name as an identity key. To recover a stable id
-and the rider's nation, join the name to the Teams-tab cards (see below), which expose
-a per-rider `team_id`.
+**rider full name** (`Chloe LORENZON`, `CJ O’Brien`) instead of `<nation> <category>`.
+**CORRECTION (verified in raw HTML 2026-08-10):** the cell **does carry a nation flag
+`<img>`** (e.g. `IT.png`, `_england.png`) — so flag presence does NOT distinguish
+Individual from Team; detect the format from the event title instead. Names are
+inconsistently cased (mixed case vs ALL CAPS: `Chloe Morse` vs `MILA DEMARQUE`) and
+carry accents / curly apostrophes (`Lola LE MÉLINER`, `CJ O’Brien`, U+2019) →
+**normalize** (case-fold, NFC, straighten `’`) before using the name as an identity
+key. To recover a stable id, join the name to the Teams-tab cards (see below), which
+expose a per-rider `team_id`.
 
 **Pairs events (id=4856):** identical table shape to Team (**a nation flag `<img>` IS
 present** in the `Team` cell, e.g. `img\country_flags\FR.png`), but the label is a
@@ -189,12 +191,14 @@ Field map: col0 = flag, col1 = team label, `Heat` col = heat number, then **one 
 per game** (header text = game name), `Sum` = session sum, `Points overall` = cumulative.
 tbl1 is the same data styled (`font-family: eraser`) with flag+label merged into one cell.
 
-**Individual events (id=4629):** the session is split into **one table per heat** under
-`### Heat <n>` sub-headings (6 heats of ~6 riders in the U12 sample). The label column
-holds the **rider name** and **col0 (flag) is empty** — individual riders carry no
-nation flag here. Game-name headers can differ in casing between heats within the same
-session (`Speed weavers` in Heat 1 vs `Speed Weavers` in Heat 2) → case-normalize game
-names. tbl1 variant prepends a `Points overall` column right after `Heat`.
+**Individual events (id=4629):** the session is split into **heats** under
+`### Heat <n>` sub-headings (6 heats of ~6 riders in the U12 sample), rendered as
+row-groups **inside one `<table>`** (a full-width `Heat N` row, then a fresh header
+row, then data rows) — re-read the column map on each header row and take the heat
+number from the `Heat` column. The label column holds the **rider name**. Game-name
+headers can differ in casing between heats within the same session (`Speed weavers` in
+Heat 1 vs `Speed Weavers` in Heat 2) → case-normalize game names. tbl1 variant prepends
+a `Points overall` column right after `Heat`.
 
 **Pairs events (id=4856):** also split into **one table per heat** (`<h3>Heat 1..3`
 sub-headings, 3 heats in the sample), **but col0 (flag) IS populated** with the pair's
@@ -250,11 +254,14 @@ Field map:
 
 **Individual events (id=4629):** the Teams tab lists **one card per rider** instead of
 per nation. Each card = rider name (`h4`/`####`), a `Team profile` link exposing a
-per-rider **`team_id`** (e.g. Chloe LORENZON → `team_id=21656`), and a **`Startnumber`**
-(e.g. 25). **No flag, no roster** (`ul.list-group` absent/empty). This is the join key
-for individual events: match the Toplist/session rider-name string to a Teams-tab card
-to obtain its `team_id` and start number. Start numbers are per-event and re-used across
-events for different riders — they are NOT a global rider id; `team_id` is.
+per-rider **`team_id`** (e.g. Chloe LORENZON → `team_id=21656`), a **`Startnumber`**
+(e.g. 25) and — **CORRECTION (raw HTML 2026-08-10)** — a **nation flag** (so individual
+riders DO have a nation). The roster `ul.list-group` is empty (the rider is the
+participant). Cards are **rendered twice** (responsive layout) → dedupe by `team_id`.
+This is the join key for individual events: match the Toplist/session rider-name string
+to a Teams-tab card to obtain its `team_id` and start number. Start numbers are
+per-event and re-used across events for different riders — they are NOT a global rider
+id; `team_id` is.
 
 **Pairs events (id=4856):** the Teams tab lists **one card per pair** (36 cards in the
 sample). Each card = pair label (`h4.text-center`, e.g. `EILEEN ET MEHDI`), a nation
@@ -327,7 +334,7 @@ Ranking rows are **team/nation-level**, no athlete links.
 | **Category** | text suffix of team label (`U12`, `U15`, `OPEN`, ...) + event title | derived | not a separate ID; **one event = one category** here (e.g. 4795 = "Under 12a") |
 | **Phase** | `session=<n>` / `final=<X>&heat=<h>` query params | event nav tabs | no numeric phase ID |
 | **Team / Participant** | `team_id` (int) in `?seite=team_profile&team_id=<id>` | **ONLY** the Teams tab | polymorphic: a nation-team (Team events), a single rider (Individual events), OR a pair (Pairs events — one free-text pair/club label + nation flag). See gap below |
-| **Nation** | flag filename + label prefix | Team + Pairs score rows | ISO2 or `_home-nation`; **present for Team AND Pairs**, **absent for Individual events** |
+| **Nation** | flag filename + label prefix | Team, Pairs AND Individual rows/cards | ISO2 or `_home-nation`; **present in all three formats** (Individual flag confirmed in raw HTML 2026-08-10) |
 | **Game** | game **name** (string) | session/final table headers, game list | no game ID |
 | **Athlete / Rider** | **`team_id`** (Individual events only) | Teams tab + score-row name (Individual events) | Team events publish **no** riders (opaque). Individual events: rider = a `team_id` + name + per-event start number |
 | **Horse / Pony** | — | **nowhere** | no horse profile page exists, either format |
@@ -367,7 +374,7 @@ and the underlying two riders/ponies are not recoverable from the source at all.
   on a Pairs/Individual event (id=4795 is Team only).
 - **Format vocabulary:** events are `Team Championships`, `Individual Championships`,
   `Pairs` (many in archive: "CLUB ELITE PAIRES", "European Pairs", "IMGA World Pairs",
-  ...). **Individual confirmed (id=4629): label = rider name, no nation flag.**
+  ...). **Individual confirmed (id=4629): label = rider name, WITH a nation flag.**
   **Pairs confirmed (id=4856): label = one free-text pair label (`et`-joined first
   names OR a club name) WITH a nation flag; two riders never structured.** Note the
   archive has an edge case "Celtic Pairs Under 12 (Individual)" (a pairs series scored
