@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mounted Games — Option B · Editoriale / Pulito</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* Muted neutral palette + one refined accent (terracotta) */
+    --bg-gallery: #e9e7e2;
+    --paper: #fdfcfa;
+    --paper-2: #f6f4ef;
+    --ink: #26221d;
+    --ink-soft: #6b655c;
+    --ink-faint: #9a938a;
+    --hairline: #e4e0d8;
+    --hairline-strong: #d8d3c9;
+    --accent: #b5563a;      /* terracotta */
+    --accent-soft: #f2e2db;
+    --accent-ink: #8f4029;
+    --live: #c0392b;
+    --gold: #b08a3e;
+    --shadow: 0 1px 2px rgba(38,34,29,.04), 0 6px 20px rgba(38,34,29,.06);
+    --shadow-sm: 0 1px 3px rgba(38,34,29,.06);
+    --radius: 16px;
+    --radius-sm: 11px;
+    --serif: "Fraunces", Georgia, serif;
+    --sans: "Inter", system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #f0eee9 0%, transparent 60%),
+      var(--bg-gallery);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    padding: 48px 24px 72px;
+  }
+
+  .gallery-head {
+    max-width: 1280px;
+    margin: 0 auto 40px;
+    text-align: center;
+  }
+  .gallery-head h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 30px;
+    letter-spacing: -.01em;
+    margin: 0 0 6px;
+  }
+  .gallery-head p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 14px;
+    letter-spacing: .01em;
+  }
+
+  .frames {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 44px;
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 1360px;
+    margin: 0 auto;
+  }
+
+  .frame-wrap { width: 390px; }
+  .frame-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 14px;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 390px;
+    height: 810px;
+    background: var(--paper);
+    border-radius: 42px;
+    padding: 10px;
+    box-shadow:
+      0 0 0 1px var(--hairline-strong),
+      0 30px 60px -20px rgba(38,34,29,.28);
+    position: relative;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: var(--paper);
+    border-radius: 33px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .notch {
+    position: absolute;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    width: 122px; height: 26px;
+    background: #26221d;
+    border-radius: 0 0 16px 16px;
+    z-index: 40;
+  }
+
+  /* Top bar */
+  .topbar {
+    padding: 40px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--hairline);
+    background: var(--paper);
+    flex-shrink: 0;
+  }
+  .brand {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 19px;
+    letter-spacing: -.01em;
+  }
+  .brand .dot { color: var(--accent); }
+  .lang {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--hairline-strong);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .lang button {
+    border: 0;
+    background: transparent;
+    font: inherit;
+    padding: 5px 10px;
+    color: var(--ink-faint);
+    cursor: pointer;
+  }
+  .lang button.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* Scroll body */
+  .body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 20px 20px;
+  }
+  .body::-webkit-scrollbar { width: 0; }
+
+  /* Section headings */
+  .sec-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0 12px;
+  }
+  .sec-head h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: -.01em;
+    margin: 0;
+  }
+  .sec-head.eyebrow {
+    display: block;
+    margin: 22px 0 12px;
+  }
+  .eyebrow-kicker {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+
+  .live-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--live);
+  }
+  .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--live);
+    box-shadow: 0 0 0 0 rgba(192,57,43,.5);
+    animation: pulse 1.8s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(192,57,43,.45); }
+    70% { box-shadow: 0 0 0 7px rgba(192,57,43,0); }
+    100% { box-shadow: 0 0 0 0 rgba(192,57,43,0); }
+  }
+
+  /* Cards */
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card .cat {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .card h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 17px;
+    line-height: 1.25;
+    letter-spacing: -.01em;
+    margin: 0 0 12px;
+  }
+  .lead-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--hairline);
+  }
+  .lead-row .meta { flex: 1; }
+  .lead-row .label {
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .lead-row .value {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .lead-row .value .unit {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .status-chip {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: var(--paper-2);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 4px 9px;
+    white-space: nowrap;
+  }
+
+  /* Flag chip (CSS-only 2-letter badges) */
+  .flag {
+    width: 26px; height: 18px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+    overflow: hidden;
+    position: relative;
+  }
+  .flag.big { width: 30px; height: 21px; font-size: 10px; }
+  .fl-en { background: linear-gradient(#fff 0%, #fff 100%); color:#c8102e; }
+  .fl-en::before, .fl-en::after {
+    content:""; position:absolute; background:#c8102e;
+  }
+  .fl-en::before { left:0; right:0; top:7px; height:4px; }
+  .fl-en::after { top:0; bottom:0; left:11px; width:4px; }
+  .fl-it { background: linear-gradient(90deg, #009246 33%, #fff 33% 66%, #ce2b37 66%); color:#26221d; text-shadow:0 0 2px #fff; }
+  .fl-cz { background: linear-gradient(180deg, #fff 50%, #d7141a 50%); color:#11457e; text-shadow:0 0 2px #fff; }
+  .fl-fr { background: linear-gradient(90deg, #0055a4 33%, #fff 33% 66%, #ef4135 66%); color:#26221d; text-shadow:0 0 2px #fff; }
+  .fl-de { background: linear-gradient(180deg, #000 33%, #dd0000 33% 66%, #ffce00 66%); color:#fff; }
+  .fl-at { background: linear-gradient(180deg, #ed2939 33%, #fff 33% 66%, #ed2939 66%); color:#26221d; text-shadow:0 0 2px #fff; }
+  .fl-wa { background: linear-gradient(180deg, #fff 50%, #00693e 50%); color:#d30731; text-shadow:0 0 1px #fff; }
+  .fl-sc { background: #0065bf; color:#fff; }
+
+  /* Search */
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--paper-2);
+    border: 1px solid var(--hairline-strong);
+    border-radius: 12px;
+    padding: 11px 13px;
+    margin: 6px 0 18px;
+    color: var(--ink-faint);
+    font-size: 14px;
+  }
+  .search svg { flex-shrink: 0; }
+
+  /* Result row */
+  .result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .result:last-child { border-bottom: 0; }
+  .result .trophy {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .result .r-main { flex: 1; min-width: 0; }
+  .result .r-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .result .r-sub {
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    margin-top: 2px;
+    letter-spacing: .02em;
+  }
+  .result .winner {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .result .winner .w-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+  .result .winner .w-name {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--accent-ink);
+  }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 34px 18px 30px;
+    border: 1px dashed var(--hairline-strong);
+    border-radius: var(--radius);
+    background: var(--paper-2);
+    margin-bottom: 18px;
+  }
+  .empty .glyph {
+    width: 52px; height: 52px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 1px solid var(--hairline-strong);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-faint);
+  }
+  .empty h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 19px;
+    margin: 0 0 6px;
+    letter-spacing: -.01em;
+  }
+  .empty p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 13px;
+  }
+  .next-up {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    background: var(--paper);
+    border: 1px solid var(--hairline-strong);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  .next-up .np-date {
+    color: var(--accent-ink);
+    font-family: var(--serif);
+    font-weight: 600;
+  }
+
+  /* Bottom nav */
+  .bottomnav {
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--hairline);
+    background: rgba(253,252,250,.92);
+    backdrop-filter: blur(8px);
+    padding: 9px 6px 14px;
+  }
+  .navitem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    color: var(--ink-faint);
+  }
+  .navitem.active { color: var(--accent); }
+  .navitem svg { display: block; }
+
+  /* ===== LIVE SCOREBOARD ===== */
+  .sb-header {
+    padding: 40px 20px 14px;
+    border-bottom: 1px solid var(--hairline);
+    background: var(--paper);
+    flex-shrink: 0;
+  }
+  .sb-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .sb-header h1 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.2;
+    letter-spacing: -.01em;
+    margin: 0 0 3px;
+  }
+  .sb-header .sub {
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .sb-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--live);
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    padding: 4px 9px;
+    border-radius: 999px;
+  }
+  .live-pill .live-dot { background:#fff; box-shadow:none; animation:none; }
+  .sb-status .upd {
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+
+  /* Phase tabs */
+  .tabs {
+    display: flex;
+    gap: 7px;
+    padding: 14px 20px 4px;
+    overflow-x: auto;
+    background: var(--paper);
+    flex-shrink: 0;
+  }
+  .tabs::-webkit-scrollbar { height: 0; }
+  .tab {
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 13px;
+    border-radius: 999px;
+    border: 1px solid var(--hairline-strong);
+    color: var(--ink-soft);
+    background: var(--paper);
+    white-space: nowrap;
+  }
+  .tab.active {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  /* Standings */
+  .standings {
+    padding: 12px 16px 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .standings::-webkit-scrollbar { width: 0; }
+  .standings-hint {
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-align: center;
+    margin: 0 0 12px;
+    letter-spacing: .02em;
+  }
+
+  details.row {
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    margin-bottom: 8px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  details.row[open] {
+    border-color: var(--hairline-strong);
+    box-shadow: var(--shadow);
+  }
+  details.row summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 13px;
+    cursor: pointer;
+  }
+  details.row summary::-webkit-details-marker { display: none; }
+  .rank {
+    width: 22px;
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--ink-soft);
+  }
+  details.row:nth-of-type(1) .rank { color: var(--gold); }
+  .team-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 0;
+  }
+  .team-total {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+  }
+  .chevron {
+    color: var(--ink-faint);
+    transition: transform .2s ease;
+    flex-shrink: 0;
+  }
+  details.row[open] .chevron { transform: rotate(180deg); }
+
+  /* Expanded per-game breakdown */
+  .breakdown {
+    padding: 2px 13px 14px 46px;
+    border-top: 1px solid var(--hairline);
+    margin-top: -1px;
+  }
+  .breakdown .bd-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--ink-faint);
+    font-weight: 700;
+    padding: 12px 0 8px;
+  }
+  .game-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 13px;
+  }
+  .game-line:last-child { border-bottom: 0; }
+  .game-line .g-name { color: var(--ink-soft); }
+  .game-line .g-val {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .game-line.sum {
+    padding-top: 10px;
+    margin-top: 2px;
+    border-top: 1.5px solid var(--hairline-strong);
+    border-bottom: 0;
+  }
+  .game-line.sum .g-name {
+    font-weight: 700;
+    color: var(--ink);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: .08em;
+  }
+  .game-line.sum .g-val {
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--accent-ink);
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 24px 8px 40px; }
+    .frame-wrap, .phone, .screen { width: 100%; max-width: 390px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="gallery-head">
+  <h1>Mounted Games — Option B</h1>
+  <p>Editoriale / Pulito · mobile-first · expandable standings rows</p>
+</div>
+
+<div class="frames">
+
+  <!-- ============ FRAME 1: HOME — LIVE ============ -->
+  <div class="frame-wrap">
+    <div class="frame-label">Home — live</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen">
+
+        <div class="topbar">
+          <div class="brand">Mounted Games<span class="dot">.</span></div>
+          <div class="lang" role="group" aria-label="Lingua">
+            <button class="active" aria-pressed="true">IT</button>
+            <button aria-pressed="false">EN</button>
+          </div>
+        </div>
+
+        <div class="body">
+          <div class="sec-head">
+            <span class="live-flag"><span class="live-dot"></span>Live ora</span>
+          </div>
+
+          <!-- Card 1: Team -->
+          <div class="card">
+            <div class="cat">IMGA European Team Championships 2026</div>
+            <h3>Under 12</h3>
+            <div class="lead-row">
+              <span class="flag fl-en" aria-label="Inghilterra">EN</span>
+              <div class="meta">
+                <div class="label">In testa</div>
+                <div class="value">England</div>
+              </div>
+              <span class="status-chip">Session 4 in corso</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Individual -->
+          <div class="card">
+            <div class="cat">European Individual Championships 2026</div>
+            <h3>Under 12</h3>
+            <div class="lead-row">
+              <span class="flag fl-it" aria-label="Italia">IT</span>
+              <div class="meta">
+                <div class="label">In testa</div>
+                <div class="value">Chloe Lorenzon</div>
+              </div>
+              <div class="value" style="text-align:right">115 <span class="unit">pt</span></div>
+            </div>
+          </div>
+
+          <div class="sec-head eyebrow">
+            <div class="eyebrow-kicker">Risultati recenti</div>
+          </div>
+
+          <div class="card" style="padding:6px 16px">
+            <div class="result">
+              <div class="trophy" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 21h8M12 17v4M6 4h12v4a6 6 0 0 1-12 0V4Z"/>
+                  <path d="M18 5h2a2 2 0 0 1 0 4h-2M6 5H4a2 2 0 0 0 0 4h2"/>
+                </svg>
+              </div>
+              <div class="r-main">
+                <div class="r-title">3ª Tappa Trofeo Federale — Coppie</div>
+                <div class="r-sub">PISA · Conclusa</div>
+              </div>
+              <div class="winner">
+                <div class="w-label">Vincitori</div>
+                <div class="w-name">LAVI &amp; LETI</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="search" role="search">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+            <span>Cerca gare, atleti, nazioni…</span>
+          </div>
+        </div>
+
+        <nav class="bottomnav">
+          <div class="navitem active">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+            Home
+          </div>
+          <div class="navitem">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/></svg>
+            Live
+          </div>
+          <div class="navitem">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 7 5 4h14l1 3M5 7v13h14V7"/><path d="M9 11h6"/></svg>
+            Archivio
+          </div>
+          <div class="navitem">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            Cerca
+          </div>
+        </nav>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 2: HOME — OFF-SEASON ============ -->
+  <div class="frame-wrap">
+    <div class="frame-label">Home — off-season</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen">
+
+        <div class="topbar">
+          <div class="brand">Mounted Games<span class="dot">.</span></div>
+          <div class="lang" role="group" aria-label="Lingua">
+            <button class="active" aria-pressed="true">IT</button>
+            <button aria-pressed="false">EN</button>
+          </div>
+        </div>
+
+        <div class="body">
+          <div class="sec-head eyebrow">
+            <div class="eyebrow-kicker">In diretta</div>
+          </div>
+
+          <div class="empty">
+            <div class="glyph" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+              </svg>
+            </div>
+            <h3>Nessuna gara in corso</h3>
+            <p>Torna presto — le classifiche live<br/>appariranno qui automaticamente.</p>
+            <div class="next-up">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              Prossima: WPC 2026 · <span class="np-date">19 Ago</span>
+            </div>
+          </div>
+
+          <div class="sec-head eyebrow">
+            <div class="eyebrow-kicker">Risultati recenti</div>
+          </div>
+
+          <div class="card" style="padding:6px 16px">
+            <div class="result">
+              <div class="trophy" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 21h8M12 17v4M6 4h12v4a6 6 0 0 1-12 0V4Z"/>
+                  <path d="M18 5h2a2 2 0 0 1 0 4h-2M6 5H4a2 2 0 0 0 0 4h2"/>
+                </svg>
+              </div>
+              <div class="r-main">
+                <div class="r-title">3ª Tappa Trofeo Federale — Coppie</div>
+                <div class="r-sub">PISA · Conclusa</div>
+              </div>
+              <div class="winner">
+                <div class="w-label">Vincitori</div>
+                <div class="w-name">LAVI &amp; LETI</div>
+              </div>
+            </div>
+            <div class="result">
+              <div class="trophy" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 21h8M12 17v4M6 4h12v4a6 6 0 0 1-12 0V4Z"/>
+                  <path d="M18 5h2a2 2 0 0 1 0 4h-2M6 5H4a2 2 0 0 0 0 4h2"/>
+                </svg>
+              </div>
+              <div class="r-main">
+                <div class="r-title">Campionato Regionale — Individuale</div>
+                <div class="r-sub">VERONA · Conclusa</div>
+              </div>
+              <div class="winner">
+                <div class="w-label">Vincitore</div>
+                <div class="w-name">M. Bianchi</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="search" role="search">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+            </svg>
+            <span>Cerca gare, atleti, nazioni…</span>
+          </div>
+        </div>
+
+        <nav class="bottomnav">
+          <div class="navitem active">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+            Home
+          </div>
+          <div class="navitem">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/></svg>
+            Live
+          </div>
+          <div class="navitem">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 7 5 4h14l1 3M5 7v13h14V7"/><path d="M9 11h6"/></svg>
+            Archivio
+          </div>
+          <div class="navitem">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            Cerca
+          </div>
+        </nav>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ FRAME 3: LIVE SCOREBOARD ============ -->
+  <div class="frame-wrap">
+    <div class="frame-label">Live scoreboard</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen">
+
+        <div class="sb-header">
+          <span class="sb-back">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            Live
+          </span>
+          <h1>European Team Championships 2026</h1>
+          <div class="sub">· Under 12</div>
+          <div class="sb-status">
+            <span class="live-pill"><span class="live-dot"></span>Live</span>
+            <span class="upd">aggiornato 12s fa</span>
+          </div>
+        </div>
+
+        <div class="tabs" role="tablist">
+          <span class="tab">Session 1</span>
+          <span class="tab">Session 2</span>
+          <span class="tab">Session 3</span>
+          <span class="tab active">Session 4</span>
+          <span class="tab">Final A</span>
+        </div>
+
+        <div class="standings">
+          <p class="standings-hint">Tocca una squadra per il dettaglio per gioco</p>
+
+          <!-- Row 1 — England, EXPANDED to show the pattern -->
+          <details class="row" open>
+            <summary>
+              <span class="rank">1</span>
+              <span class="flag big fl-en" aria-label="Inghilterra">EN</span>
+              <span class="team-name">England</span>
+              <span class="team-total">257</span>
+              <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="breakdown">
+              <div class="bd-label">Punteggio per gioco</div>
+              <div class="game-line"><span class="g-name">Speed weavers</span><span class="g-val">54</span></div>
+              <div class="game-line"><span class="g-name">Toolbox scramble</span><span class="g-val">48</span></div>
+              <div class="game-line"><span class="g-name">Association race</span><span class="g-val">52</span></div>
+              <div class="game-line"><span class="g-name">Four flag</span><span class="g-val">51</span></div>
+              <div class="game-line sum"><span class="g-name">Sum</span><span class="g-val">257</span></div>
+            </div>
+          </details>
+
+          <details class="row">
+            <summary>
+              <span class="rank">2</span>
+              <span class="flag big fl-it" aria-label="Italia">IT</span>
+              <span class="team-name">Italy</span>
+              <span class="team-total">244</span>
+              <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="breakdown">
+              <div class="bd-label">Punteggio per gioco</div>
+              <div class="game-line"><span class="g-name">Speed weavers</span><span class="g-val">50</span></div>
+              <div class="game-line"><span class="g-name">Toolbox scramble</span><span class="g-val">46</span></div>
+              <div class="game-line"><span class="g-name">Association race</span><span class="g-val">49</span></div>
+              <div class="game-line"><span class="g-name">Four flag</span><span class="g-val">49</span></div>
+              <div class="game-line sum"><span class="g-name">Sum</span><span class="g-val">244</span></div>
+            </div>
+          </details>
+
+          <details class="row">
+            <summary>
+              <span class="rank">3</span>
+              <span class="flag big fl-cz" aria-label="Repubblica Ceca">CZ</span>
+              <span class="team-name">Czech Republic</span>
+              <span class="team-total">238</span>
+              <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="breakdown">
+              <div class="bd-label">Punteggio per gioco</div>
+              <div class="game-line"><span class="g-name">Speed weavers</span><span class="g-val">47</span></div>
+              <div class="game-line"><span class="g-name">Toolbox scramble</span><span class="g-val">45</span></div>
+              <div class="game-line"><span class="g-name">Association race</span><span class="g-val">48</span></div>
+              <div class="game-line"><span class="g-name">Four flag</span><span class="g-val">48</span></div>
+              <div class="game-line sum"><span class="g-name">Sum</span><span class="g-val">238</span></div>
+            </div>
+          </details>
+
+          <details class="row">
+            <summary>
+              <span class="rank">4</span>
+              <span class="flag big fl-fr" aria-label="Francia">FR</span>
+              <span class="team-name">France</span>
+              <span class="team-total">230</span>
+              <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="breakdown">
+              <div class="bd-label">Punteggio per gioco</div>
+              <div class="game-line"><span class="g-name">Speed weavers</span><span class="g-val">45</span></div>
+              <div class="game-line"><span class="g-name">Toolbox scramble</span><span class="g-val">44</span></div>
+              <div class="game-line"><span class="g-name">Association race</span><span class="g-val">46</span></div>
+              <div class="game-line"><span class="g-name">Four flag</span><span class="g-val">45</span></div>
+              <div class="game-line sum"><span class="g-name">Sum</span><span class="g-val">230</span></div>
+            </div>
+          </details>
+
+          <details class="row">
+            <summary>
+              <span class="rank">5</span>
+              <span class="flag big fl-de" aria-label="Germania">DE</span>
+              <span class="team-name">Germany</span>
+              <span class="team-total">221</span>
+              <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="breakdown">
+              <div class="bd-label">Punteggio per gioco</div>
+              <div class="game-line"><span class="g-name">Speed weavers</span><span class="g-val">43</span></div>
+              <div class="game-line"><span class="g-name">Toolbox scramble</span><span class="g-val">42</span></div>
+              <div class="game-line"><span class="g-name">Association race</span><span class="g-val">44</span></div>
+              <div class="game-line"><span class="g-name">Four flag</span><span class="g-val">43</span></div>
+              <div class="game-line sum"><span class="g-name">Sum</span><span class="g-val">221</span></div>
+            </div>
+          </details>
+
+          <details class="row">
+            <summary>
+              <span class="rank">6</span>
+              <span class="flag big fl-at" aria-label="Austria">AT</span>
+              <span class="team-name">Austria</span>
+              <span class="team-total">210</span>
+              <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="breakdown">
+              <div class="bd-label">Punteggio per gioco</div>
+              <div class="game-line"><span class="g-name">Speed weavers</span><span class="g-val">41</span></div>
+              <div class="game-line"><span class="g-name">Toolbox scramble</span><span class="g-val">40</span></div>
+              <div class="game-line"><span class="g-name">Association race</span><span class="g-val">42</span></div>
+              <div class="game-line"><span class="g-name">Four flag</span><span class="g-val">41</span></div>
+              <div class="game-line sum"><span class="g-name">Sum</span><span class="g-val">210</span></div>
+            </div>
+          </details>
+
+          <details class="row">
+            <summary>
+              <span class="rank">7</span>
+              <span class="flag big fl-wa" aria-label="Galles">WA</span>
+              <span class="team-name">Wales</span>
+              <span class="team-total">205</span>
+              <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="breakdown">
+              <div class="bd-label">Punteggio per gioco</div>
+              <div class="game-line"><span class="g-name">Speed weavers</span><span class="g-val">40</span></div>
+              <div class="game-line"><span class="g-name">Toolbox scramble</span><span class="g-val">39</span></div>
+              <div class="game-line"><span class="g-name">Association race</span><span class="g-val">41</span></div>
+              <div class="game-line"><span class="g-name">Four flag</span><span class="g-val">40</span></div>
+              <div class="game-line sum"><span class="g-name">Sum</span><span class="g-val">205</span></div>
+            </div>
+          </details>
+
+          <details class="row">
+            <summary>
+              <span class="rank">8</span>
+              <span class="flag big fl-sc" aria-label="Scozia">SC</span>
+              <span class="team-name">Scotland</span>
+              <span class="team-total">198</span>
+              <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="breakdown">
+              <div class="bd-label">Punteggio per gioco</div>
+              <div class="game-line"><span class="g-name">Speed weavers</span><span class="g-val">38</span></div>
+              <div class="game-line"><span class="g-name">Toolbox scramble</span><span class="g-val">37</span></div>
+              <div class="game-line"><span class="g-name">Association race</span><span class="g-val">39</span></div>
+              <div class="game-line"><span class="g-name">Four flag</span><span class="g-val">38</span></div>
+              <div class="game-line sum"><span class="g-name">Sum</span><span class="g-val">198</span></div>
+            </div>
+          </details>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
