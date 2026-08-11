@@ -319,7 +319,7 @@ function parseClassifica($: CheerioAPI): NormalizedResult[] {
         .toUpperCase();
       push(fin, {
         kind: "final",
-        ordinal: type === "B" ? 2 : 1,
+        ordinal: type ? Math.max(1, type.charCodeAt(0) - 64) : 1,
         label: type ? `Finale ${type}` : "Finale",
         nativeParams: type ? { final: type } : undefined,
       });
@@ -430,11 +430,11 @@ function batteriaPhase(url: string): NormalizedPhaseRef {
 }
 
 function finalePhase(url: string): NormalizedPhaseRef {
-  const m = url.match(/live-finale-([ab])/i);
+  const m = url.match(/live-finale-([a-z])/i);
   const type = (m ? m[1] : "a").toUpperCase();
   return {
     kind: "final",
-    ordinal: type === "B" ? 2 : 1,
+    ordinal: Math.max(1, type.charCodeAt(0) - 64),
     label: `Finale ${type}`,
     nativeParams: { final: type },
   };
