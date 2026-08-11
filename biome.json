@@ -15,7 +15,8 @@
       "!db/meta",
       "!app/globals.css",
       "!**/*.sql",
-      "!lib/scrapers/__fixtures__"
+      "!lib/scrapers/__fixtures__",
+      "!docs/mockups"
     ]
   },
   "formatter": {

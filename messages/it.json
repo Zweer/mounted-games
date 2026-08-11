@@ -1,0 +1,38 @@
+{
+  "app": {
+    "name": "Mounted Games",
+    "tagline": "Punteggi live, archivio risultati e statistiche"
+  },
+  "nav": {
+    "home": "Home",
+    "live": "Live",
+    "archive": "Archivio",
+    "search": "Cerca"
+  },
+  "lang": {
+    "it": "IT",
+    "en": "EN"
+  },
+  "live": {
+    "now": "LIVE ORA"
+  },
+  "home": {
+    "recentResults": "Risultati recenti",
+    "recentEmpty": "Nessun risultato recente al momento.",
+    "empty": {
+      "title": "Nessuna gara in corso",
+      "body": "Non ci sono eventi live al momento. Torna durante il prossimo appuntamento."
+    },
+    "next": {
+      "label": "Prossima gara",
+      "none": "Il calendario sarà presto disponibile."
+    }
+  },
+  "search": {
+    "placeholder": "Cerca atleti, squadre, gare…"
+  },
+  "contribute": {
+    "title": "Area contributori",
+    "body": "Quest'area è riservata ai contributori approvati. Il flusso di crowdsourcing — per colmare i dati che i portali di origine nascondono — arriverà in una milestone successiva."
+  }
+}

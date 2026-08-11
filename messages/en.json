@@ -1,0 +1,38 @@
+{
+  "app": {
+    "name": "Mounted Games",
+    "tagline": "Live scores, results archive and statistics"
+  },
+  "nav": {
+    "home": "Home",
+    "live": "Live",
+    "archive": "Archive",
+    "search": "Search"
+  },
+  "lang": {
+    "it": "IT",
+    "en": "EN"
+  },
+  "live": {
+    "now": "LIVE NOW"
+  },
+  "home": {
+    "recentResults": "Recent results",
+    "recentEmpty": "No recent results at the moment.",
+    "empty": {
+      "title": "No competition in progress",
+      "body": "There are no live events right now. Check back during the next event."
+    },
+    "next": {
+      "label": "Next competition",
+      "none": "The schedule will be available soon."
+    }
+  },
+  "search": {
+    "placeholder": "Search athletes, teams, competitions…"
+  },
+  "contribute": {
+    "title": "Contributors area",
+    "body": "This area is reserved for approved contributors. The crowdsourcing flow — filling the gaps the source portals hide — arrives in a later milestone."
+  }
+}
