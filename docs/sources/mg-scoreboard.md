@@ -104,6 +104,44 @@ active session page).
 `browser_network_requests` capture during a *live* event that no additional XHR fires
 on Refresh (static evidence strongly indicates it does not).
 
+### Live list — Current competitions (index nav)
+
+The index page (`index.php`) exposes which events are **running right now** in its
+top navbar, as a dedicated dropdown distinct from "Up coming competitions" and
+"Archive". This is the automatic live-window source (`listLiveEvents` → Toplist entry
+targets); no dates or manual flag needed.
+
+```html
+<li class="dropdown alert-info visible-sm visible-md visible-lg ">
+  <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" ...>
+    <span class="glyphicon glyphicon-play-circle"></span> Current competitions
+    <span class="caret"></span></a>
+  <ul class="dropdown-menu">
+    <li class=""><a href="?seite=show_event&id=4863"><img ...> World Team Championships 2026 - U18</a></li>
+    <li class=""><a href="?seite=show_event&id=4862"><img ...> World Team Championships 2026 - Open</a></li>
+  </ul>
+</li>
+```
+
+**Selector used (`parseCurrentEventIds`):** iterate `li.dropdown`, keep the one whose
+direct `> a.dropdown-toggle` text matches `/current competitions/i`, then read event
+ids from that li's `> ul.dropdown-menu a[href*="seite=show_event"]` (`?...&id=<n>`).
+Text-matching the toggle is more robust than keying off the `alert-info` /
+`glyphicon-play-circle` styling hooks that also mark the group.
+
+Scoping to that dropdown-menu deliberately excludes three other id sources on the same
+page: the **"Up coming competitions"** and **"Archive"** dropdowns (plain `li.dropdown`,
+each with `dropdown-header` + a "See all …" footer link), and the **mobile
+`li.visible-xs`** copies of the current events rendered *outside* any dropdown-menu
+(same ids, but a page-wide `show_event` scan would also pull upcoming/archive). When no
+event is live the "Current competitions" `ul.dropdown-menu` is empty → empty list.
+
+**Surprise vs prior docs:** none material. The docs already noted the nav dropdowns
+emit `show_event` links page-wide (the archive-parsing caveat); this confirms the live
+group is a separate `li.dropdown.alert-info` with a `glyphicon-play-circle` toggle, and
+that current events are additionally mirrored as `visible-xs` items outside the menu —
+hence the tight `li → toggle text → ul.dropdown-menu` scoping.
+
 ## Data Views
 
 Nation/team is always rendered as **flag `<img>` + text label** where the label is

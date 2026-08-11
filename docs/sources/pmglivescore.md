@@ -131,6 +131,45 @@ Field map:
 | Number of games/categories | `.gara-numero-gare > span:first-child` | `8 Gare` |
 | Status | `.gara-stato` (modifier class `gara-stato--conclusa`) | `Conclusa` |
 
+#### Live list — `in_corso` cards (automatic live window)
+
+`listLiveEvents` derives the *currently-running* competitions from the home page,
+so no manual flag or date heuristic is needed. Two hops:
+
+1. **Select in-progress cards.** On the home page, each competition card
+   (`.gara-item`) carries its state in a `.gara-stato` element whose modifier
+   class is `gara-stato--programmata` | `gara-stato--in_corso` |
+   `gara-stato--conclusa`. The pure helper `parseInProgressCompetitions(html)`
+   selects `.gara-item` cards containing `.gara-stato--in_corso` and reads each
+   card's `data-competizione` (the competition **name**) and `data-url` (its
+   `/competizione/?competizione=<NAME>` link). Results are de-duplicated by
+   normalized name.
+
+2. **Resolve name → category `post_id`s.** A home card is keyed by the
+   competition **name**, not by `post_id`, so each in-progress competition is
+   resolved to its category posts via **wp-json title match** (the chosen path —
+   more reliable than parsing the `/competizione/` page, and it reuses the same
+   CPT enumeration `listEvents` already relies on): fetch
+   `/wp-json/wp/v2/<cpt>?per_page=100&_fields=id,title` for the three CPTs
+   (`squadre-cpt`, `individuali-cpt`, `coppie-cpt`), index every post by
+   `normalizeKey(title.rendered)`, then collect the ids whose normalized title
+   equals the card's normalized `data-competizione`. `normalizeKey` decodes HTML
+   entities (`&#8211;` → `–`), NFC-normalizes, collapses whitespace (handles the
+   double-space titles like `2ª TAPPA TROFEO FEDERALE  MOUNTED GAMES`) and
+   case-folds, so the card name matches `title.rendered` despite encoding drift.
+
+Each resolved `post_id` becomes a classifica entry target
+(`{ kind: "classifica", url: "<PMG_BASE>/live-classifica-generale/?post_id=<id>" }`),
+identical in shape to `listEvents`; the poller discovers each category's live
+sub-phases when it later parses that classifica page.
+
+> **Capture note:** at fixture-capture time all 8 home cards were
+> `gara-stato--conclusa` (no competition in progress). `listLiveEvents` returns
+> `[]` cleanly in that case. The test fixture
+> (`lib/scrapers/__fixtures__/pmg/home.html`) is a trimmed home with one card
+> hand-adjusted to `gara-stato--in_corso` (plus one `programmata` and two
+> `conclusa`) so the in_corso selection path is asserted.
+
 ### 2. Competition page — `/competizione/?competizione=<NAME>`
 
 Header:

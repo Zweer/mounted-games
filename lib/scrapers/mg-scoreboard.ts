@@ -118,16 +118,31 @@ export const mgScoreboardScraper: Scraper = {
         // A missing/failed list must not abort the whole seed.
       }
     }
-    return [...ids].map((id) => ({
-      kind: "toplist",
-      url: `${MG_BASE}/?seite=show_event&id=${id}&seite2=event_points_list_show`,
-    }));
+    return [...ids].map((id) => toplistTarget(id));
+  },
+
+  async listLiveEvents(signal: AbortSignal): Promise<DiscoveredTarget[]> {
+    // The events running now come straight from the index nav's "Current
+    // competitions" dropdown (see docs/sources/mg-scoreboard.md). Each is seeded
+    // as a Toplist entry target; the poller discovers its live sub-phases later.
+    const html = await fetchHtml(`${MG_BASE}/index.php`, signal, {
+      Cookie: "language=en",
+    });
+    return parseCurrentEventIds(html).map((id) => toplistTarget(id));
   },
 };
 
 const MG_BASE = (
   process.env.MG_SCOREBOARD_BASE_URL ?? "https://www.mg-scoreboard.de"
 ).replace(/\/$/, "");
+
+/** Toplist entry-target for an event id (the seed/live entry point). */
+function toplistTarget(id: string): DiscoveredTarget {
+  return {
+    kind: "toplist",
+    url: `${MG_BASE}/?seite=show_event&id=${id}&seite2=event_points_list_show`,
+  };
+}
 
 /** Collect every distinct `show_event` event id from an archive/list page. */
 export function parseEventIds(html: string): string[] {
@@ -138,6 +153,35 @@ export function parseEventIds(html: string): string[] {
       .attr("href")
       ?.match(/[?&]id=(\d+)/)?.[1];
     if (id) ids.add(id);
+  });
+  return [...ids];
+}
+
+/**
+ * Collect the event ids that are LIVE right now from the index nav's "Current
+ * competitions" dropdown. That group is a `li.dropdown` whose toggle link reads
+ * "Current competitions" (it also carries the `alert-info` highlight + a
+ * `glyphicon-play-circle` icon); its `ul.dropdown-menu` lists exactly the
+ * running events. Scoping to that menu excludes the sibling "Up coming
+ * competitions"/"Archive" dropdowns AND the mobile `visible-xs` duplicates that
+ * sit outside any dropdown-menu — so only currently-running ids are returned.
+ */
+export function parseCurrentEventIds(html: string): string[] {
+  const $ = load(html);
+  const ids = new Set<string>();
+  $("li.dropdown").each((_, li) => {
+    const $li = $(li);
+    const toggle = $li.children("a.dropdown-toggle").first().text();
+    if (!/current competitions/i.test(toggle)) return;
+    $li
+      .children("ul.dropdown-menu")
+      .find('a[href*="seite=show_event"]')
+      .each((_, a) => {
+        const id = $(a)
+          .attr("href")
+          ?.match(/[?&]id=(\d+)/)?.[1];
+        if (id) ids.add(id);
+      });
   });
   return [...ids];
 }

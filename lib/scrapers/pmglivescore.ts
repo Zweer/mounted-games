@@ -98,7 +98,87 @@ export const pmgLivescoreScraper: Scraper = {
       url: `${PMG_BASE}/live-classifica-generale/?post_id=${id}`,
     }));
   },
+
+  async listLiveEvents(signal: AbortSignal): Promise<DiscoveredTarget[]> {
+    // The competitions running now come straight from the home page cards whose
+    // status is `gara-stato--in_corso` (see docs/sources/pmglivescore.md). A
+    // card is keyed by a competition NAME, not a post_id, so each in-progress
+    // competition is resolved to its category `post_id`s by matching its
+    // normalized name against `title.rendered` across the three CPTs via
+    // wp-json. Every matched post_id becomes a classifica entry target; the
+    // poller discovers its live sub-phases later.
+    const home = await fetchHtml(`${PMG_BASE}/`, signal);
+    const live = parseInProgressCompetitions(home);
+    if (live.length === 0) return [];
+
+    // Index post_ids by normalized competition title, once, across all CPTs.
+    const idsByTitle = new Map<string, Set<number>>();
+    const cpts = ["squadre-cpt", "individuali-cpt", "coppie-cpt"];
+    for (const cpt of cpts) {
+      try {
+        const json = await fetchHtml(
+          `${PMG_BASE}/wp-json/wp/v2/${cpt}?per_page=100&_fields=id,title`,
+          signal,
+        );
+        const rows = JSON.parse(json) as Array<{
+          id?: number;
+          title?: { rendered?: string };
+        }>;
+        for (const row of rows) {
+          const title = row.title?.rendered;
+          if (typeof row.id !== "number" || !title) continue;
+          const key = normalizeKey(title);
+          const bucket = idsByTitle.get(key) ?? new Set<number>();
+          bucket.add(row.id);
+          idsByTitle.set(key, bucket);
+        }
+      } catch {
+        // A missing/failed post type must not abort the whole live scan.
+      }
+    }
+
+    const ids = new Set<number>();
+    for (const comp of live) {
+      for (const id of idsByTitle.get(normalizeKey(comp.name)) ?? []) {
+        ids.add(id);
+      }
+    }
+    return [...ids].map((id) => ({
+      kind: "classifica",
+      url: `${PMG_BASE}/live-classifica-generale/?post_id=${id}`,
+    }));
+  },
 };
+
+/**
+ * Pure helper: select the home-page competition cards that are IN PROGRESS right
+ * now. Cards are `.gara-item` elements carrying `data-competizione` (the
+ * competition name — the join key back to wp-json `title.rendered`) and
+ * `data-url` (its `/competizione/?competizione=<NAME>` link). A card's state
+ * lives in its `.gara-stato` element as the modifier class
+ * `gara-stato--in_corso` (vs `--programmata` / `--conclusa`); only in-progress
+ * cards are returned. Names/urls are de-duplicated by normalized name.
+ */
+export function parseInProgressCompetitions(
+  html: string,
+): { name: string; url: string }[] {
+  const $ = cheerio.load(html);
+  const out: { name: string; url: string }[] = [];
+  const seen = new Set<string>();
+
+  $(".gara-item").each((_, el) => {
+    const card = $(el);
+    if (card.find(".gara-stato--in_corso").length === 0) return;
+    const name = cleanDisplay(card.attr("data-competizione") ?? "");
+    if (!name) return;
+    const key = normalizeKey(name);
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push({ name, url: card.attr("data-url") ?? "" });
+  });
+
+  return out;
+}
 
 const PMG_BASE = (
   process.env.PMG_LIVESCORE_BASE_URL ?? "https://pmglivescore.altervista.org"

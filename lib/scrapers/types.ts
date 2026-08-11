@@ -145,4 +145,11 @@ export interface Scraper {
    * crawls the archive/upcoming/current lists, pmg enumerates the wp-json CPTs.
    */
   listEvents(signal: AbortSignal): Promise<DiscoveredTarget[]>;
+  /**
+   * List the events that are LIVE right now, straight from the source's own
+   * "current / in-progress" list (mg "Current competitions" nav; pmg home cards
+   * with `gara-stato--in_corso`). Drives the automatic live-window — no dates,
+   * no manual flag. Returns entry-kind targets, same shape as `listEvents`.
+   */
+  listLiveEvents(signal: AbortSignal): Promise<DiscoveredTarget[]>;
 }

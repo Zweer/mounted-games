@@ -1,6 +1,6 @@
 import { getScraper } from "@/lib/scrapers/registry";
 import { syncTargets } from "./discover";
-import { hasLiveTargets } from "./live-window";
+import { hasLiveTargets, refreshLiveWindow } from "./live-window";
 import { markScraped, selectStaleLiveTargets } from "./targets";
 import { persistScrape } from "./upsert";
 
@@ -29,6 +29,18 @@ export async function runPollTick(
 ): Promise<PollSummary> {
   const limit = options.limit ?? 3;
   const timeoutMs = options.timeoutMs ?? 9000;
+
+  // Refresh the live window from the sources' own "in-progress" lists first, so
+  // events auto-open/close with no manual flag. A failure here is non-fatal.
+  const refreshController = new AbortController();
+  const refreshTimer = setTimeout(() => refreshController.abort(), timeoutMs);
+  try {
+    await refreshLiveWindow(refreshController.signal);
+  } catch {
+    // Leave existing flags; proceed with whatever is currently live.
+  } finally {
+    clearTimeout(refreshTimer);
+  }
 
   if (!(await hasLiveTargets())) {
     return { skipped: true, processed: 0, errors: 0 };

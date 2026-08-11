@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<!-- <html lang="de"> -->
+<html lang="en" xml:lang="en" xmlns="https://www.w3.org/1999/xhtml">
+  <head>
+
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PJCQZ3N0R3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PJCQZ3N0R3');
+</script>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Mounted-Games Scoreboard find all scores and Statics about Mounted Games Teams">
+    <meta name="author" content="Mats Hensel">
+    <meta name="keywords" content="mounted-games, mounted games, games, mounted, riding, reiten, vrmgd" />
+    
+
+    <title>MG-SCOREBOARD</title>    <link rel="manifest" href="/manifest.json?v=20260526">
+    <meta name="theme-color" content="#ffffff"/>
+
+    <link rel="icon" href="/img/img.ico" type="image/x-icon" />  
+    <link rel="apple-touch-icon" href="/img/mgs-icon-192.png">   
+    <meta name="apple-mobile-web-app-capable" content="yes">  
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"> 
+    <meta name="apple-mobile-web-app-title" content="MG-Scoreboard"> 
+    <meta name="msapplication-TileImage" content="/img/mgs-icon-144.png">  
+    <meta name="msapplication-TileColor" content="#FFFFFF">
+
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="/css/bootstrap-theme.min.css" rel="stylesheet">
+    
+    <link href="/css/weather-icons.min.css" rel="stylesheet">
+    <link href="/css/weather-icons-wind.min.css" rel="stylesheet">
+    <link href="/css/weather-icons-wind.css" rel="stylesheet">
+
+
+    <link href="/css/carousel.css" rel="stylesheet">
+
+    <link href="/css/checkbox.css" rel="stylesheet">
+    <link href="/css/center.css" rel="stylesheet">
+    <link href="/css/table_fonts.css" rel="stylesheet">
+    <link href="/css/notifications.css" rel="stylesheet">
+
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script> 
+    <link type="text/css" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/south-street/jquery-ui.css" rel="stylesheet"> 
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  
+    <script type="text/javascript" src="js/jquery.signature.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/jquery.signature.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap.min.css">
+
+
+
+    <script type="text/javascript" src="js/change_lang_cookie.js"></script>
+    <script type="text/javascript" src='ajax/js/event_timetable_ajax.js'></script>
+
+    <!-- <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID"></script> -->
+    
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- Unterstützung für Media Queries und HTML5-Elemente in IE8 über HTML5 shim und Respond.js -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Besondere Stile für diese Vorlage -->
+      <link rel="icon" href="/img/img.ico">
+  <link type="text/css" media="screen" rel="stylesheet" href="css/responsive-tables.css" />
+        <!-- <script src="js/awesomeiframe.js"></script> -->
+        <script> 
+                </script>
+
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-84982004-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+<script>
+  function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i <ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+</script>
+
+<!-- adsense -->
+   <!-- <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+
+   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({
+          google_ad_client: "ca-pub-6204683860047855",
+          enable_page_level_ads: true,
+          overlays: {bottom: true}
+     });
+</script> -->
+
+
+<!-- adsense code ab 2022 -->
+
+
+
+<script>
+    
+
+      if(getCookie("cookieconsent_status") == "dismiss")
+     {
+      (adsbygoogle=window.adsbygoogle||[]).pauseAdRequests=0;
+      (adsbygoogle=window.adsbygoogle||[]).requestNonPersonalizedAds=0;
+      console.log(true);
+     }
+     else
+     {
+      (adsbygoogle=window.adsbygoogle||[]).pauseAdRequests=1;
+      (adsbygoogle=window.adsbygoogle||[]).requestNonPersonalizedAds=1;
+
+     }
+   
+
+     // (adsbygoogle = window.adsbygoogle || []).push({
+     //      google_ad_client: "ca-pub-6204683860047855",
+     //      enable_page_level_ads: true
+     // });
+
+    if(getCookie("cookieconsent_status") == "dismiss")
+     {
+      (adsbygoogle=window.adsbygoogle||[]).pauseAdRequests=0;
+      (adsbygoogle=window.adsbygoogle||[]).requestNonPersonalizedAds=0;
+      console.log(true);
+     }
+     else
+     {
+      (adsbygoogle=window.adsbygoogle||[]).pauseAdRequests=1;
+      (adsbygoogle=window.adsbygoogle||[]).requestNonPersonalizedAds=1;
+
+     }
+      // (adsbygoogle=window.adsbygoogle||[]).requestNonPersonalizedAds=0;
+     
+
+</script>
+
+
+<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.css" />
+<script async src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.0/cookieconsent.min.js"></script>
+<script>
+window.addEventListener("load", function(){
+window.cookieconsent.initialise({
+  "palette": {
+    "popup": {
+      "background": "#252e39"
+    },
+    "button": {
+      "background": "#14a7d0"
+    }
+  },
+  "theme": "edgeless",
+  "content": {
+    "message": "Dear user, I would like to inform you that MG-Scoreboard uses cookies to optimize the offered content. If you agree to this, you also agree to the privacy policy. Our partners (e.g. Google adsense) collect data and use cookies to display personalized ads and collect metrics.",
+    "link": "Datenschutzerklärung",
+    "href": "https://mg-scoreboard.de/index.php?seite=datenschutzerklaerung"
+  }
+})});
+</script>
+
+
+  </head>
+  <body>
+
+    <div class="modal fade" id="modal_push" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+                <div class="modal-dialog modal-lg" role="document">
+                  <div class="modal-content">
+                   <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Live updates</h4>
+                    </div>
+                    <div class="modal-body">
+                      <main>
+    <p>Receive live updates for subscribed teams and events, e.g. new points or session starts.</p>
+    <p>We only ask for browser permission after you click. You can disable notifications anytime again.</p>
+    <p>
+      <button disabled class="js-push-btn btn btn-info"><span class="glyphicon glyphicon-heart-empty
+"></span> Enable live updates
+      </button>
+      <button type="button" class="js-push-later btn btn-default" data-dismiss="modal">Not now</button>
+    </p>
+    <section class="subscription-details js-subscription-details is-invisible">
+      <p></p>
+      <!--<pre><code class="js-subscription-json"></code></pre>-->
+    </section>
+  </main>
+                    </div>
+                    <div class="modal-footer">
+                      
+                    </div>
+                  </div>
+                </div>
+              </div>
+ 
+
+
+  <script type="text/javascript" src="js/responsive-tables.js?v=20260430-menu-fix"></script>
+<!-- 
+<script>
+$( document ).click(function() {
+  $( "#shake" ).effect( "shake" );
+});
+</script> -->
+<!-- Auswahlmenüs -->
+
+<!-- Der Android Stock Browser wird bei <select>-Elementen die Symbole an der Seite nicht richtig anzeigen, wenn ein border-radius und/oder border vorhanden ist. (Siehe diese Frage auf StackOverflow für Details.) Verwende den Code-Schnipsel unten, um diese CSS-Eigenschaften im Android Stock Browser zu entfernen und das <select>-Element ohne Stile darzustellen. Der Code analysiert den User Agent, damit Chrome, Safari und Mozilla-Browser nicht beeinträchtigt werden. -->
+   <!--  <script>
+    &(function () {
+      var nua = navigator.userAgent
+      var isAndroid = (nua.indexOf('Mozilla/5.0') > -1 && nua.indexOf('Android ') > -1 && nua.indexOf('AppleWebKit') > -1 && nua.indexOf('Chrome') === -1)
+      if (isAndroid) {
+        $('select.form-control').removeClass('form-control').css('width', '100%')
+      }
+    })
+    </script> -->
+
+                <div class="navbar-wrapper">
+                  <div class="container">
+
+                    <nav class="navbar navbar-default navbar-static-top">
+                      <div class="container">
+                        <div class="navbar-header">
+                          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                            <span class="sr-only">Navigation ein-/ausblenden</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                          </button>
+                          <script>$(function () {
+  if ($.fn.popover) {
+    $('[data-toggle="popover"]').popover()
+  }
+})</script><a tabindex="0" role="button" data-toggle="popover" data-trigger="focus" title="Choose your language" id="modal_select_language" class="navbar-brand" data-container="body"  data-placement="bottom" data-html="true" data-delay='{"show":"1", "hide":"200"}' data-content="<a name='1' value='en' onclick='change_language_cookie(1)'><img src='/img/flags/flags-iso/shiny/ico/GB.ico' height='30px' alt='english'></img></a> <a name='2' value='de' onclick='change_language_cookie(2)'><img src='/img/flags/flags-iso/shiny/ico/DE.ico' height='30px' alt='deutsch'></img></a> <a name='3' value='da' onclick='change_language_cookie(3)'><img src='/img/flags/flags-iso/shiny/ico/DK.ico' height='30px' alt='dansk'></img></a> <a name='4' value='fr' onclick='change_language_cookie(4)'><img src='/img/flags/flags-iso/shiny/ico/FR.ico' height='30px' alt='france'></img></a> <a name='5' value='it' onclick='change_language_cookie(5)'><img src='/img/flags/flags-iso/shiny/ico/IT.ico' height='30px' alt='italiano'></img></a> <a name='6' value='se' onclick='change_language_cookie(6)'><img src='/img/flags/flags-iso/shiny/ico/SE.ico' height='30px' alt='svenska'></img></a> <a name='7' value='no' onclick='change_language_cookie(7)'><img src='/img/flags/flags-iso/shiny/ico/NO.ico' height='30px' alt='norsk'></img></a> ">
+  <img src="/img/flags/flags-iso/shiny/ico/GB.ico" height="25px" alt="Choose your language"></img>
+</a>                          
+                          <a class="navbar-brand" href="/">MG-SCOREBOARD</a>
+                        </div>
+                        <div id="navbar" class="navbar-collapse collapse">
+                          <ul class="nav navbar-nav navbar-left">
+                          <li class=" visible-xs"><a href="?seite=show_event&id=4863"><img height="20px" src="img\country_flags\FR.png"> World Team Championships 2026 - U18</a></li><li class=" visible-xs"><a href="?seite=show_event&id=4862"><img height="20px" src="img\country_flags\FR.png"> World Team Championships 2026 - Open</a></li>
+      <li class="dropdown alert-info visible-sm visible-md visible-lg ">
+                    <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-play-circle"></span> Current competitions<span class="caret"></span></a>
+                    <ul class="dropdown-menu"><li class=""><a href="?seite=show_event&id=4863"><img height="20px" src="img\country_flags\FR.png"> World Team Championships 2026 - U18</a></li><li class=""><a href="?seite=show_event&id=4862"><img height="20px" src="img\country_flags\FR.png"> World Team Championships 2026 - Open</a></li></ul></li>                          </ul>
+            <!--                 <li class="dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown-Menü <span class="caret"></span></a>
+                              <ul class="dropdown-menu"> -->
+                          <ul class="nav navbar-nav navbar-right">
+                                 
+      <li class="dropdown">
+                    <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Up coming competitions<span class="caret"></span></a>
+                    <ul class="dropdown-menu"><li class="dropdown-header">Next five events</li><li ><a href="?seite=show_event&id=4857"><img height="20px" src=img\country_flags\FR.png> OPEN WPC 2026 - 19. Aug 26</a></li><li ><a href="?seite=show_event&id=4860"><img height="20px" src=img\country_flags\FR.png> U 12 WPC 2026 - 19. Aug 26</a></li><li ><a href="?seite=show_event&id=4859"><img height="20px" src=img\country_flags\FR.png> U 15 WPC 2026 - 19. Aug 26</a></li><li ><a href="?seite=show_event&id=4858"><img height="20px" src=img\country_flags\FR.png> U 18 WPC 2026 - 19. Aug 26</a></li><li ><a href="?seite=show_event&id=4815"><img height="20px" src=img\country_flags\DE.png> RLT Wittorfer Kibro's Einsteigerklasse - 22. Aug 26</a></li><li class="dropdown-header">...</li><li role="separator" class="divider"></li><li class="dropdown-header"></li><li><a href="index.php?seite=upcoming">See all upcoming events</a></li></ul></li>                                 
+      <li class="dropdown">
+                    <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Archive<span class="caret"></span></a>
+                    <ul class="dropdown-menu"><li class="dropdown-header">Last five competitions</li><li ><a href="?seite=show_event&id=4811"><img height="20px" src=img\country_flags\DE.png> RLT Bad Segeberg Einsteigerklasse - Aug 26</a></li><li ><a href="?seite=show_event&id=4810"><img height="20px" src=img\country_flags\DE.png> RLT Bad Segeberg U17 - Aug 26</a></li><li ><a href="?seite=show_event&id=4809"><img height="20px" src=img\country_flags\DE.png> RLT Bad Segeberg U12 - Aug 26</a></li><li ><a href="?seite=show_event&id=4795"><img height="20px" src=img\country_flags\FR.png> IMGA European Team Championships 2026 - Under 12a - Aug 26</a></li><li ><a href="?seite=show_event&id=4794"><img height="20px" src=img\country_flags\FR.png> IMGA European Team Championships 2026 - Under 15s - Aug 26</a></li><li class="dropdown-header">...</li><li role="separator" class="divider"></li><li class="dropdown-header"></li><li><a href="index.php?seite=archiv">See the full Archive!</a></li></ul></li>                                
+      <li class="dropdown">
+                    <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Menu<span class="caret"></span></a>
+                    <ul class="dropdown-menu"><li ><a href="?seite=teams"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> Teams</a></li><li ><a href="?seite=games"><span class="glyphicon glyphicon-flag" aria-hidden="true"></span> Games</a></li><li ><a href="?seite=ger_ranking_list"><span class="glyphicon glyphicon-star-empty" aria-hidden="true"></span> German Ranking</a></li><li ><a href="?seite=che_ranking_list"><span class="glyphicon glyphicon-star-empty" aria-hidden="true"></span> Swiss Ranking</a></li><li ><a href="?seite=register"><span class="glyphicon glyphicon-copy" aria-hidden="true"></span> Sign up</a></li><li ><a href="?seite=calender"><span class="glyphicon glyphicon-calendar" aria-hidden="true"></span> Calendar</a></li><li ><a href="?seite=imga_height_weight"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span> IMGA Height &amp; Weight Calculator</a></li><li ><a href="?seite=login"><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span> Login</a></li><li ><a href="?seite=my_orders"><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span> My Orders</a></li></ul></li>                                 <li class="dropdown mgs-notification-nav">
+              <a href="javascript:void(0);" class="dropdown-toggle js-notification-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" title="Notifications">
+                <span class="glyphicon glyphicon-bell" aria-hidden="true"></span>
+                <span class="badge js-notification-badge" style="display:none;">0</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-right mgs-notification-dropdown">
+                <li class="dropdown-header">Notifications</li>
+                <li class="js-notification-loading"><a href="javascript:void(0);">Loading...</a></li>
+                <li class="js-notification-empty" style="display:none;"><a href="javascript:void(0);">No new notifications</a></li>
+                <li class="mgs-notification-list-host"><ul class="js-notification-list list-unstyled"></ul></li>
+                <li role="separator" class="divider"></li>
+                <li class="mgs-notification-actions">
+                  <a href="javascript:void(0);" class="js-notification-mark-all"><span class="glyphicon glyphicon-ok"></span> Mark all as read</a>
+                </li>
+                <li class="mgs-notification-actions">
+                  <a href="javascript:void(0);" class="js-notification-dismiss-all"><span class="glyphicon glyphicon-trash"></span> Delete all</a>
+                </li>
+                <li class="mgs-notification-actions">
+                  <div class="small text-muted" style="padding:8px 20px; white-space:normal;">For email notifications and personal settings, please log in or register.</div>
+                </li>
+                <li class="mgs-notification-actions">
+                  <a href="index.php?seite=login"><span class="glyphicon glyphicon-log-in"></span> Login</a>
+                </li>
+                <li class="mgs-notification-actions">
+                  <a href="index.php?seite=register"><span class="glyphicon glyphicon-copy"></span> Sign up</a>
+                </li>
+                <li class="mgs-notification-actions">
+                  <a href="index.php?seite=notification_settings"><span class="glyphicon glyphicon-cog"></span> Settings</a>
+                </li>
+              </ul>
+            </li>                                
+                                
+            <!--                   </ul>
+                            </li> -->
+                          </ul>
+                        </div>
+                      </div>
+                    </nav>
+
+                  </div>
+                </div>
+                
+                
+
+
+<!--Responive bereich bestimmung -->
+<!-- <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12"> -->
+<!-- DIV col-.. -->
+                    
+
+<!-- <div class="row"> -->
+<!-- Content 
+==================================================================-->
+
+    <!-- Karussell
+    ================================================== -->
+
+    <div class="visible-xs" style="padding-top: 50px;"></div>      <div id="myCarousel" class="carousel slide" data-ride="carousel">
+                    <!-- Positionsanzeige -->
+                    <ol class="carousel-indicators">     <li data-target="#myCarousel" data-slide-to="0" ></li>                <li data-target="#myCarousel" class="active" data-slide-to="1"></li>                <li data-target="#myCarousel"  data-slide-to="2"></li>                <li data-target="#myCarousel" data-slide-to="3"></li>                <li data-target="#myCarousel" data-slide-to="4"></li>     </ol>
+                    <div class="carousel-inner" role="listbox">     <div class="item">
+                    <img class="first-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Erste Folie">
+                    <img class="first-slide" src="img/carusell/wtc_win-min.jpg" alt="Dritte Folie">
+
+                    <div class="container">
+                    <div class="carousel-caption" style="background-image: url(img/carusell/bg.png);background-repeat:no-repeat; background-position:50% 50%; background-size: 100% 100%; opacity: 1;">
+                    
+                    </br>
+                              </br>
+                              </br>
+                              </br>
+                    <h1>The Scoreboard</h1>
+                    <h2>Mounted-Games</h2>
+
+                    <h3>Find all about your competition!</h3>
+                    <p>Follow your favorite team from everywhere!</p>
+                    <p></p>
+                    </br>
+                    </br>
+                    </br>
+                    </br>                 
+                    </div>
+                    </div>
+                    </div>     <div class="item active">
+                    <img class="secound-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Erste Folie">
+                    <img class="secound-slide src="img/carusell/wtc_win-min.jpg" alt="Dritte Folie">
+                    <img class="secound-slide" src="img/carusell/wtc_win-min.jpg" alt="Dritte Folie">
+
+
+                    <div class="container">
+	                    
+                       <div class="carousel-caption world-individuals-caption" style="background-image: url(img/carusell/bg.png);background-repeat:no-repeat; background-position:50% 50%; background-size: 100% 100%; opacity: 1;">
+	                        <div class="world-individuals-badge">WORLD INDIVIDUAL CHAMPIONSHIP</div>
+	                        <h1 class="world-individuals-title">Mounted Games<br>World Individuals 2026</h1>
+	                        <div class="world-individuals-details">
+	                            <div class="detail-item">
+	                                <span class="glyphicon glyphicon-calendar"></span>
+	                                <strong>27. Juli - 02. August 2026</strong>
+	                            </div>
+                              <div class="detail-item">
+	                                <span class="glyphicon glyphicon-calendar"></span>
+	                                <strong>Entry will open 13. Dezember 2025</strong>
+	                            </div>
+	                            <div class="detail-item">
+	                                <span class="glyphicon glyphicon-map-marker"></span>
+	                                <strong>Luhmühlen, Germany</strong>
+	                            </div>
+	                        </div>
+	                        <p class="world-individuals-description">Over 200 athletes from more than 18 nations compete for the title in 4 age categories</p>
+	                        <div class="world-individuals-actions">
+	                            <a class="btn btn-lg btn-world-individuals-primary" href="https://www.world-individuals.com" target="_blank" role="button">
+	                                <span class="glyphicon glyphicon-info-sign"></span> Get more Information
+	                            </a>
+	                            <a class="btn btn-lg btn-world-individuals-secondary" href="https://www.world-individuals.com/teilnehmer" target="_blank" role="button">
+	                                <span class="glyphicon glyphicon-user"></span> Enter Now!
+	                            </a>
+	                        </div>
+	                    </div>
+	                    </div>
+                    </div>     <div class="item">
+                          <img class="third-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Dritte Folie">
+                           <img class="third-slide" src="img/carusell/mk_cl_freddy-min.jpg" alt="Dritte Folie">
+
+                          <div class="container">
+                            <div class="carousel-caption" style="background-image: url(img/carusell/bg.png);background-repeat:no-repeat;
+background-position:50% 50%; background-size: 100% 100%; opacity: 1;">
+                              <span 
+                              </br>
+                              </br>
+                              </br>
+                              </br>
+
+                              <h1>Rulebooks</h1>
+                              <p>Get the informations about the rulebooks which are in the MG-Scoreboard</p>
+                              
+
+                              <p><a class="btn btn-lg btn-default" href="?seite=rulebooks" role="button">Rulebooks</a>
+                              
+                             
+                              </br>
+                              </br>
+
+                            </div>
+                          </div>
+                        </div>     <div class="item">
+                    <img class="fourth-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Zweite Folie">
+                    <img class="fourth-slide" src="img/carusell/mh_wtc_hummel-min.jpg" alt="Dritte Folie">
+
+                    <div class="container">
+                    <div class="carousel-caption" style="background-image: url(img/carusell/bg.png);background-repeat:no-repeat;
+background-position:50% 50%; background-size: 100% 100%; opacity: 1;">
+
+                              </br>
+                              </br>
+                              </br>
+                              </br>
+
+                    <!--<h1>MGS-Premium!</h1>-->
+                    <h2>Get the Scoreboard without advertising!</h2>
+                    <p>Support the project and get the Scoreboard without ads!</p>
+                    <p><a class="btn btn-lg btn-success" href="?seite=premium" role="button">MGS-Premium</a></p>
+
+                    </br>
+                    </br>
+                    </br>
+
+                    
+
+                    </div>
+                    </div>
+                    </div>     <div class="item">
+                          <img class="fifth-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Dritte Folie">
+                           <img class="fifth-slide" src="img/carusell/mk_cl_freddy-min.jpg" alt="Dritte Folie">
+
+                          <div class="container">
+                            <div class="carousel-caption" style="background-image: url(img/carusell/bg.png);background-repeat:no-repeat;
+background-position:50% 50%; background-size: 100% 100%; opacity: 1;">
+                              <span 
+                              </br>
+                              </br>
+                              </br>
+                              </br>
+
+                              <h1>Mounted-Games Livestreams</h1>
+                              <img src="img/TV_Overlays.png" max-height="100px">
+                              </br>
+                              <script src="https://apis.google.com/js/platform.js"></script>
+
+                              <div class="g-ytsubscribe" data-channelid="UC2FV3CK-TvvoU5H9uia0aAw" data-layout="default" data-count="hidden"></div>
+
+                              <p>Follow all Livestreams from the Scoreboard!</p>
+                              
+
+                              <!--<p><a target="_blank" class="btn btn-lg btn-info" href="https://www.youtube.com/channel/UC2FV3CK-TvvoU5H9uia0aAw/videos" role="button">MGS-Livestreams</a>-->
+                              
+                             
+                              </br>
+                              </br>
+
+                            </div>
+                          </div>
+                        </div>       <a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">
+                      <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                      <span class="sr-only">Zurück</span>
+                      </a>       <a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">
+                      <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                      <span class="sr-only">Weiter</span>
+                      </a>       </div>       </div>    <!-- /.carousel -->
+<!--     <div class="btn-group btn-group-justified" role="group" aria-label="...">
+   <div class="text-center"><a id="down" href="#down" class="btn btn-default glyphicon glyphicon-chevron-down"> Scroll down <span class="glyphicon glyphicon-chevron-down"></span></a></div>
+   </div>
+ -->
+<!-- Marketing-Botschaften und Präsentationsspalten
+    ================================================== -->
+    <!-- Der Rest der Seite wird in einem anderen Container verpackt, um den Inhalt schön zu zentrieren. -->
+<div class="container col-md-10 col-md-offset-1" id="content_active_livestreams" style="margin-top:18px;"><div class="col-md-12"><h2 class="text-center" style="margin-top:0; margin-bottom:12px;">Livestreams <span class="badge">1</span></h2><div class="row" style="margin-left:-6px; margin-right:-6px;"><div class="col-xs-12 col-sm-6 col-md-4" style="padding-left:6px; padding-right:6px; margin-bottom:12px;"><div class="list-group-item" style="min-height:176px;"><div style="margin-bottom:8px;"><span class="label label-danger">Live</span> <small class="text-muted">live</small></div><h4 class="list-group-item-heading" style="margin-top:0;">Mounted-Games Livestream Deutsche Paarmeisterschaft 2026 Sonntag</h4><p class="list-group-item-text" style="margin-bottom:6px;"><img height="16px" src="img\country_flags\DE.png" alt="GER" style="margin-right:6px; vertical-align:text-bottom;">Deutsche Paarmeisterschaft 2026 OK</p><p class="text-muted" style="margin-bottom:6px;"><span class="glyphicon glyphicon-map-marker"></span> Jübek</p><p class="text-muted" style="margin-bottom:10px;"><span class="glyphicon glyphicon-time"></span> 31.05.2026 07:00</p><a class="btn btn-success btn-sm" href="index.php?seite=show_event&id=4607&seite2=event_livestream"><span class="glyphicon glyphicon-film"></span> Watch livestream</a></div></div></div></div></div><div class="container col-md-10 col-md-offset-1" id="content_active_entry_forms"><div class="col-md-12"><h2 class="text-center" style="margin-top:0; margin-bottom:12px;">Active entry forms <span class="badge">7</span></h2><div class="text-center" style="margin-bottom:14px;"><button type="button" class="btn btn-success btn-xs active" data-entry-country-filter="all" aria-pressed="true" style="border-radius:999px; padding:4px 10px; margin:0 4px 6px 0; font-size:11px; line-height:1.2; font-weight:600;">All entry forms</button><button type="button" class="btn btn-default btn-xs" data-entry-country-filter="1" aria-pressed="false" title="Germany" style="border-radius:999px; padding:4px 10px; margin:0 4px 6px 0; font-size:11px; line-height:1.2; font-weight:600;"><img height="14px" src="img\country_flags\DE.png" alt="GER" style="margin-right:6px; vertical-align:text-bottom;">GER</button><button type="button" class="btn btn-default btn-xs" data-entry-country-filter="11" aria-pressed="false" title="Sweden" style="border-radius:999px; padding:4px 10px; margin:0 4px 6px 0; font-size:11px; line-height:1.2; font-weight:600;"><img height="14px" src="img\country_flags\SE.png" alt="SWE" style="margin-right:6px; vertical-align:text-bottom;">SWE</button></div><div><div class="row" style="margin-left:-6px; margin-right:-6px;"><div class="col-xs-12 col-sm-6" style="padding-left:6px; padding-right:6px;" data-entry-country="1"><a href="index.php?seite=show_event&id=4808&seite2=event_entry_form" class="list-group-item list-group-item-warning" style="padding:8px 12px; margin-bottom:12px; display:block; min-height:108px;"><div class="row"><div class="col-xs-9 col-sm-9"><div class="list-group-item-heading" style="font-size:13px; font-weight:600; line-height:1.3; margin-bottom:2px;"><img height="20px" src="img\country_flags\DE.png" alt="GER" style="margin-right:8px;">RLT Kirchwalsede U12 2026 <span class="text-muted" style="font-weight:400;">05.09.2026 bis 06.09.2026</span></div><div class="list-group-item-text text-muted" style="font-size:12px; line-height:1.3;">10.08.2026 12:00 bis 12.08.2026 00:00 | 2. Nednnphase | Team</div><div class="text-danger" style="font-size:11px; line-height:1.2; margin-top:2px; min-height:14px;" data-entry-countdown="1786485600">Nennschluss in 10:54:31</div><div class="progress" style="height:8px; margin-top:6px; margin-bottom:0;"><div class="progress-bar progress-bar-warning progress-bar-striped" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"><span class="sr-only">100% belegt</span></div></div></div><div class="col-xs-3 col-sm-3 text-right"><div class="text-muted" style="font-size:11px; margin-top:2px; margin-bottom:4px;">Stand</div><div style="font-size:11px; font-weight:600;">12 / 12</div></div></div></a></div><div class="col-xs-12 col-sm-6" style="padding-left:6px; padding-right:6px;" data-entry-country="1"><a href="index.php?seite=show_event&id=4807&seite2=event_entry_form" class="list-group-item" style="padding:8px 12px; margin-bottom:12px; display:block; min-height:108px;"><div class="row"><div class="col-xs-9 col-sm-9"><div class="list-group-item-heading" style="font-size:13px; font-weight:600; line-height:1.3; margin-bottom:2px;"><img height="20px" src="img\country_flags\DE.png" alt="GER" style="margin-right:8px;">RLT Kirchwalsede U17 2026 <span class="text-muted" style="font-weight:400;">05.09.2026 bis 06.09.2026</span></div><div class="list-group-item-text text-muted" style="font-size:12px; line-height:1.3;">10.08.2026 12:00 bis 12.08.2026 00:00 | 2. Nennungsphase | Team</div><div class="text-danger" style="font-size:11px; line-height:1.2; margin-top:2px; min-height:14px;" data-entry-countdown="1786485600">Nennschluss in 10:54:31</div><div class="progress" style="height:8px; margin-top:6px; margin-bottom:0;"><div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%"><span class="sr-only">75% belegt</span></div></div></div><div class="col-xs-3 col-sm-3 text-right"><div class="text-muted" style="font-size:11px; margin-top:2px; margin-bottom:4px;">Stand</div><div style="font-size:11px; font-weight:600;">9 / 12</div></div></div></a></div><div class="col-xs-12 col-sm-6" style="padding-left:6px; padding-right:6px;" data-entry-country="1"><a href="index.php?seite=show_event&id=4385&seite2=event_entry_form" class="list-group-item" style="padding:8px 12px; margin-bottom:12px; display:block; min-height:108px;"><div class="row"><div class="col-xs-9 col-sm-9"><div class="list-group-item-heading" style="font-size:13px; font-weight:600; line-height:1.3; margin-bottom:2px;"><img height="20px" src="img\country_flags\DE.png" alt="GER" style="margin-right:8px;">RLT Ahrenlohe OK <span class="text-muted" style="font-weight:400;">12.09.2026 bis 13.09.2026</span></div><div class="list-group-item-text text-muted" style="font-size:12px; line-height:1.3;">22.06.2026 12:00 bis 14.08.2026 00:00 | Nennung | Team</div><div class="text-danger" style="font-size:11px; line-height:1.2; margin-top:2px; min-height:14px;" data-entry-countdown="1786658400">Nennschluss in 2T 10:54:31</div><div class="progress" style="height:8px; margin-top:6px; margin-bottom:0;"><div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%"><span class="sr-only">50% belegt</span></div></div></div><div class="col-xs-3 col-sm-3 text-right"><div class="text-muted" style="font-size:11px; margin-top:2px; margin-bottom:4px;">Stand</div><div style="font-size:11px; font-weight:600;">12 / 24</div></div></div></a></div><div class="col-xs-12 col-sm-6" style="padding-left:6px; padding-right:6px;" data-entry-country="1"><a href="index.php?seite=show_event&id=4383&seite2=event_entry_form" class="list-group-item" style="padding:8px 12px; margin-bottom:12px; display:block; min-height:108px;"><div class="row"><div class="col-xs-9 col-sm-9"><div class="list-group-item-heading" style="font-size:13px; font-weight:600; line-height:1.3; margin-bottom:2px;"><img height="20px" src="img\country_flags\DE.png" alt="GER" style="margin-right:8px;">RLT Ahrenlohe U12 <span class="text-muted" style="font-weight:400;">12.09.2026 bis 13.09.2026</span></div><div class="list-group-item-text text-muted" style="font-size:12px; line-height:1.3;">22.06.2026 12:00 bis 14.08.2026 00:00 | Nennung | Team</div><div class="text-danger" style="font-size:11px; line-height:1.2; margin-top:2px; min-height:14px;" data-entry-countdown="1786658400">Nennschluss in 2T 10:54:31</div><div class="progress" style="height:8px; margin-top:6px; margin-bottom:0;"><div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width: 50%"><span class="sr-only">50% belegt</span></div></div></div><div class="col-xs-3 col-sm-3 text-right"><div class="text-muted" style="font-size:11px; margin-top:2px; margin-bottom:4px;">Stand</div><div style="font-size:11px; font-weight:600;">4 / 8</div></div></div></a></div><div class="col-xs-12 col-sm-6" style="padding-left:6px; padding-right:6px;" data-entry-country="1"><a href="index.php?seite=show_event&id=4384&seite2=event_entry_form" class="list-group-item" style="padding:8px 12px; margin-bottom:12px; display:block; min-height:108px;"><div class="row"><div class="col-xs-9 col-sm-9"><div class="list-group-item-heading" style="font-size:13px; font-weight:600; line-height:1.3; margin-bottom:2px;"><img height="20px" src="img\country_flags\DE.png" alt="GER" style="margin-right:8px;">RLT Ahrenlohe U17 <span class="text-muted" style="font-weight:400;">12.09.2026 bis 13.09.2026</span></div><div class="list-group-item-text text-muted" style="font-size:12px; line-height:1.3;">22.06.2026 12:00 bis 14.08.2026 23:59 | Nennung | Team</div><div class="text-danger" style="font-size:11px; line-height:1.2; margin-top:2px; min-height:14px;" data-entry-countdown="1786744740">Nennschluss in 3T 10:53:31</div><div class="progress" style="height:8px; margin-top:6px; margin-bottom:0;"><div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="63" aria-valuemin="0" aria-valuemax="100" style="width: 63%"><span class="sr-only">63% belegt</span></div></div></div><div class="col-xs-3 col-sm-3 text-right"><div class="text-muted" style="font-size:11px; margin-top:2px; margin-bottom:4px;">Stand</div><div style="font-size:11px; font-weight:600;">5 / 8</div></div></div></a></div><div class="col-xs-12 col-sm-6" style="padding-left:6px; padding-right:6px;" data-entry-country="11"><a href="index.php?seite=show_event&id=4769&seite2=event_entry_form" class="list-group-item" style="padding:8px 12px; margin-bottom:12px; display:block; min-height:108px;"><div class="row"><div class="col-xs-9 col-sm-9"><div class="list-group-item-heading" style="font-size:13px; font-weight:600; line-height:1.3; margin-bottom:2px;"><img height="20px" src="img\country_flags\SE.png" alt="SWE" style="margin-right:8px;">SM/NM Par 2026 Junior <span class="text-muted" style="font-weight:400;">19.09.2026 bis 20.09.2026</span></div><div class="list-group-item-text text-muted" style="font-size:12px; line-height:1.3;">30.05.2026 12:00 bis 19.09.2026 00:00 | Anmälan av par för senior SM/NM | Pair (Two rider)</div><div style="font-size:11px; line-height:1.2; margin-top:2px; min-height:14px;">&nbsp;</div><div class="progress" style="height:8px; margin-top:6px; margin-bottom:0;"><div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"><span class="sr-only">0% belegt</span></div></div></div><div class="col-xs-3 col-sm-3 text-right"><div class="text-muted" style="font-size:11px; margin-top:2px; margin-bottom:4px;">Stand</div><div style="font-size:11px; font-weight:600;">0 / 20</div></div></div></a></div><div class="col-xs-12 col-sm-6" style="padding-left:6px; padding-right:6px;" data-entry-country="11"><a href="index.php?seite=show_event&id=4686&seite2=event_entry_form" class="list-group-item" style="padding:8px 12px; margin-bottom:12px; display:block; min-height:108px;"><div class="row"><div class="col-xs-9 col-sm-9"><div class="list-group-item-heading" style="font-size:13px; font-weight:600; line-height:1.3; margin-bottom:2px;"><img height="20px" src="img\country_flags\SE.png" alt="SWE" style="margin-right:8px;">SM/NM Par 2026 Senior <span class="text-muted" style="font-weight:400;">19.09.2026 bis 20.09.2026</span></div><div class="list-group-item-text text-muted" style="font-size:12px; line-height:1.3;">30.05.2026 12:00 bis 19.09.2026 00:00 | Anmälan av par för senior SM/NM | Pair (Two rider)</div><div style="font-size:11px; line-height:1.2; margin-top:2px; min-height:14px;">&nbsp;</div><div class="progress" style="height:8px; margin-top:6px; margin-bottom:0;"><div class="progress-bar progress-bar-success progress-bar-striped" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"><span class="sr-only">0% belegt</span></div></div></div><div class="col-xs-3 col-sm-3 text-right"><div class="text-muted" style="font-size:11px; margin-top:2px; margin-bottom:4px;">Stand</div><div style="font-size:11px; font-weight:600;">0 / 20</div></div></div></a></div></div><script>
+				(function () {
+					var container = document.getElementById("content_active_entry_forms");
+					if (!container) {
+						return;
+					}
+
+					var buttons = container.querySelectorAll("[data-entry-country-filter]");
+					var cards = container.querySelectorAll("[data-entry-country]");
+					if (!buttons.length || !cards.length) {
+						return;
+					}
+
+					function applyFilter(filterValue) {
+						var i;
+						for (i = 0; i < buttons.length; i++) {
+							var button = buttons[i];
+							var isActive = button.getAttribute("data-entry-country-filter") === filterValue;
+							button.className = isActive ? "btn btn-success btn-xs active" : "btn btn-default btn-xs";
+							button.setAttribute("aria-pressed", isActive ? "true" : "false");
+						}
+
+						for (i = 0; i < cards.length; i++) {
+							var card = cards[i];
+							var matches = filterValue === "all" || card.getAttribute("data-entry-country") === filterValue;
+							card.style.display = matches ? "" : "none";
+						}
+					}
+
+					for (var i = 0; i < buttons.length; i++) {
+						buttons[i].addEventListener("click", function () {
+							applyFilter(this.getAttribute("data-entry-country-filter"));
+						});
+					}
+
+					applyFilter("all");
+				})();
+				</script><script>
+				(function () {
+					function pad(value) {
+						return value < 10 ? "0" + value : "" + value;
+					}
+
+					function renderCountdown(node) {
+						var target = parseInt(node.getAttribute("data-entry-countdown"), 10);
+						if (!target) {
+							return;
+						}
+
+						var diff = target - Math.floor(Date.now() / 1000);
+						if (diff <= 0) {
+							node.textContent = "Nennschluss erreicht";
+							return;
+						}
+
+						var days = Math.floor(diff / 86400);
+						diff = diff % 86400;
+						var hours = Math.floor(diff / 3600);
+						diff = diff % 3600;
+						var minutes = Math.floor(diff / 60);
+						var seconds = diff % 60;
+
+						if (days > 0) {
+							node.textContent = "Nennschluss in " + days + "T " + pad(hours) + ":" + pad(minutes) + ":" + pad(seconds);
+							return;
+						}
+
+						node.textContent = "Nennschluss in " + pad(hours) + ":" + pad(minutes) + ":" + pad(seconds);
+					}
+
+					function updateCountdowns() {
+						var nodes = document.querySelectorAll("#content_active_entry_forms [data-entry-countdown]");
+						for (var i = 0; i < nodes.length; i++) {
+							renderCountdown(nodes[i]);
+						}
+					}
+
+					updateCountdowns();
+					if (window.mgEntryCountdownTimer) {
+						window.clearInterval(window.mgEntryCountdownTimer);
+					}
+					window.mgEntryCountdownTimer = window.setInterval(updateCountdowns, 1000);
+				})();
+				</script></div></div><div class="clearfix"></div></div>
+<br>
+<br>
+<br>
+
+
+
+<div class="col-md-12">
+
+
+   <nav class="navbar navbar-default">
+    <div class="container">
+      <ul class="nav navbar-nav">
+        <li><a href="#content_scoreboard">The Scoreboard</a></li>
+        <li><a href="#content_mgs_competition">Follow competitions</a></li>
+        <!-- <li><a href="#content_mgs_competition_create">Eigene Turniere erstellen</a></li> -->
+        <li><a href="#content_mgs_ranking">Analysis and ranking</a></li>
+
+
+        <li><a href="#content_mounted-games">Mounted-Games</a></li>
+        <li><a href="#content_the_games">The Games</a></li>
+        <li><a href="#content_requirement">Requirements</a></li>
+        <li><a href="#content_competition">Competition flow</a></li>
+      </ul>
+    </div>
+   </nav>
+</div>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+
+<!-- start div scoreboard -->
+<div class="container col-md-10 col-md-offset-1">
+<div class="container col-md-12" id="content_scoreboard">
+<h1 class="page-header text-center featurette-heading">The Scoreboard</h1>
+
+<p class="text-center">The Mounted Games Scoreboard is the focal point when it comes to participating in a Mounted Games tournament. The platform ensures that organisers and visitors can follow the tournament before, during and after the event.</p><br>
+</div>
+<div class="col-md-6" id="content_mgs_competition">
+<h2 class="text-center featurette-heading"><small>Follow competitions</small></h2>
+<p class="text-center">
+The simple navigation through a tournament gives every user the opportunity to actively follow the ongoing events. All important information such as schedules, race divisions or even the weather forecast of the venue can be viewed with just one click and are always up to date.</p>
+</div>
+
+<div class="col-md-6" id="content_mgs_competition_create">
+<h2 class="text-center featurette-heading"><small>Competition flow</small></h2>
+<p class="text-center">
+If you are interested in running your tournament with the scoreboard, this is possible after activating your account. If your tournament venue is stored on Google Places, it can be selected as the venue through the search function and visitors can even be navigated there directly. It only takes 15 minutes to create a tournament. All games and teams are stored in the system and can thus be added by a simple selection when creating a tournament.</p>
+</div>
+
+
+<div class="col-md-12" id="content_mgs_ranking">
+<h2 class="text-center featurette-heading"><small>Analysis and ranking</small></h2>
+<p class="text-center">
+The performance of each individual team is stored in the scoreboard. This provides insight into the teams' successes. In addition, the German ranking list is automatically generated after the end of each tournament.
+Lists for other leagues in the sport are also automatically generated by the scoreboard.</p>
+</div>
+
+
+
+
+</div>
+<!-- end div scoreboard -->
+<div class="container col-md-10 col-md-offset-1" id="content_mounted-games">
+
+<h1 class="page-header text-center featurette-heading">Mounted-Games</h1>
+
+<p class="text-center">Mounted Games are fast-paced team equestrian games and certainly the most exciting thing that equestrian sport has to offer, especially for young people. Mounted games are relay races with a higher degree of difficulty in which several teams consisting of four riders and a trainer compete directly against each other. Between the start and change lines, the riders have to complete various tasks.</p><br>
+<div class="col-md-6" id="content_the_games">
+<h2 class="text-center featurette-heading"><small>The Games</small></h2>
+<p class="text-center">
+The games are played in an arena measuring approx. 50m x 100m. There are 30 different, precisely regulated games that have been standardised and perfected over the years. All games are very simple, but consistently sporty, fast-paced and attractive. Balloons are punctured with lances, cups are placed from one pole to the next, balls are fished out of buckets of water (without dismounting), galloping horses are jumped onto or "simply" slalom ridden.</p>
+</div>
+<div class="col-md-6" id="content_requirement">
+<h2 class="text-center featurette-heading"><small>Requirements</small></h2>
+<p class="text-center">
+  A lot of skill is demanded from the riders and ponies. In addition to skill and speed, team spirit and harmony between rider and pony are required. Only with solid riding training can you expect good performance in this sport. But the atmosphere must also be right within a team, because Mounted Games is a team sport with 4-5 riders.</p>
+</div>
+
+<div class="col-md-12" id="content_competition">
+<h2 class="text-center featurette-heading"><small>Competition flow</small></h2>
+<p class="text-center">
+Riding is not about time or mistakes, but in an exciting comparison of team against team. Mistakes, such as slalom poles that have been knocked over, must be corrected immediately. In this way, the lead can change quickly within a game. The team with the pony nose in front at the end wins and receives the most points for the overall ranking. A main referee and five line judges supervise the observance of the rules of the game, which essentially include gentle behaviour towards the pony/horse. The field is rebuilt after each game by the helpers, the so-called arena party.</p>
+</div>
+
+
+</div>
+
+
+
+<div class="colum">
+<br>
+<br>
+<br>
+
+
+        
+
+
+<div class="featurette-divider">
+          
+</div>
+
+      <!-- Präsentationsspalten -->
+<div class="container col-md-10 col-md-offset-1">
+  
+
+      <!-- <hr class="featurette-divider">
+
+      <div class="row featurette">
+        <div class="col-md-7">
+          <h2 class="featurette-heading">Tolle Überschrift. <span class="text-muted">Es wird dir den Verstand rauben.</span></h2>
+          <p class="lead">Toller Inhalt!</p>
+        </div>
+        <div class="col-md-5">
+          <img class="featurette-image img-responsive center-block" data-src="holder.js/500x500/auto" alt="Generisches Platzhalter-Bild">
+        </div>
+      </div>
+
+      <hr class="featurette-divider">
+
+      <div class="row featurette">
+        <div class="col-md-7 col-md-push-5">
+          <h2 class="featurette-heading">Oh ja, es ist SO gut. <span class="text-muted">Sieh es dir selbst an.</span></h2>
+          <p class="lead">Prima Inhalt!</p>
+        </div>
+        <div class="col-md-5 col-md-pull-7">
+          <img class="featurette-image img-responsive center-block" data-src="holder.js/500x500/auto" alt="Generisches Platzhalter-Bild">
+        </div>
+      </div>
+
+      <hr class="featurette-divider">
+
+      <div class="row featurette">
+        <div class="col-md-7">
+          <h2 class="featurette-heading">Und zum Schluss gibt es noch dies hier. <span class="text-muted">Schachmatt.</span></h2>
+          <p class="lead">Bester Text wo gibt.</p>
+        </div>
+        <div class="col-md-5">
+          <img class="featurette-image img-responsive center-block" data-src="holder.js/500x500/auto" alt="Generisches Platzhalter-Bild">
+        </div>
+      </div>
+
+      <hr class="featurette-divider"> -->
+
+
+
+<div>
+            <!-- <p>Impressum: Mats Hensel, Hansastraße 36, 24148 Kiel, mg.scoreboard@gmail.com</p> -->
+            <!-- <p>&copy; Mats Hensel, <a href="http://www.mg-scoreboard.de">MG-SCOREBOARD.de</a> 2015-2016;</p> -->
+</div>
+</div>
+
+
+</div><!-- DIV col-.. -->
+</div>
+</div>
+
+
+
+
+      <!-- FOOTER -->
+      <footer>
+      <div class="container"><button id="shake"  type="button" class="hidden col-xs-offset-2 col-md-offset-9 btn-default btn btn-lg navbar-fixed-bottom alert alert-danger" data-toggle="modal" data-target="#account_message"><span class=" glyphicon glyphicon-envelope"></span> <span class="badge">42</span> Account messages!</button></div><div class="modal fade" id="account_message" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+                <div class="modal-dialog modal-lg" role="document">
+                  <div class="modal-content">
+                   <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Account-Messages</h4>
+                    </div>
+                    <div class="modal-body">
+                      <h4 class="text-center">NO Event invitations</h4>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+                </div>
+              </div> <nav class="navbar navbar-default">
+              <diV class="container">
+              <div class="navbar-left">
+              <ul class="nav navbar-nav">
+              <li><p class="navbar-text">&copy; Mats Hensel, <a href="http://www.mg-scoreboard.de">MG-SCOREBOARD.de</a></p></li>
+              </ul>
+              </div>
+              <div class="navbar-right">
+              <ul class="nav navbar-nav">
+              <li><a href="index.php?seite=impressum">Impressum</a></li>
+              <li><a href="index.php?seite=datenschutzerklaerung">Datenschutz </a> </li>
+              </ul>
+              
+              </div>
+              </div>
+
+
+            </nav>
+                    <!-- <p class="pull-right"><a href="#">Zurück nach oben</a></p> -->
+        <!-- <p>&copy; 2014 Firma &amp; Co. &middot; <a href="#">Datenschutz</a> &middot; <a href="#">AGB</a></p> -->
+      </footer>
+
+    </div><!-- /.container -->
+
+    </div> <!-- Bootstrap-JavaScript
+    ================================================== -->
+    <!-- Am Ende des Dokuments platziert, damit Seiten schneller laden -->
+    <!-- <script src="js/bootstrap.min.js"></script> -->
+    <!-- Nur, um unsere Platzhalter-Bilder zum Laufen zu bringen. Die nächste Zeile nicht wirklich kopieren! -->
+	<!-- <script src="//code.jquery.com/jquery-1.12.4.js"></script> -->
+  	<!-- <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script> -->
+    <!-- <script src="js/jquery.min.js" async></script> -->
+    <!-- <script src="js/tooltip.js"></script> -->
+    <!-- <script src="js/popover.js"></script> -->
+    <!-- <script src="js/ie10-viewport-bug-workaround.js"></script> -->
+      
+    
+  <div id="premium-trial-bar" role="region" aria-label="Premium trial active"
+       style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#111;color:#fff;
+              padding:12px 16px;box-shadow:0 -2px 8px rgba(0,0,0,.35);display:flex;align-items:center;
+              justify-content:center;gap:12px;flex-wrap:wrap;font-size:14px;line-height:1.3;">
+    <button id="premium-trial-close" type="button" aria-label="Close notice"
+        style="position:absolute;right:10px;top:8px;background:#d32f2f;border:0;color:#fff;font-size:18px;
+               font-weight:700;cursor:pointer;width:28px;height:28px;border-radius:9999px;
+               display:flex;align-items:center;justify-content:center;line-height:1;
+               box-shadow:0 1px 3px rgba(0,0,0,.4);">×</button>
+
+
+    <span>🚀 <strong>Premium trial active</strong> – ad-free for
+      <span id="trial-remaining">00:00</span> min.
+    </span>
+
+    <a href="/premium" style="padding:8px 14px;border-radius:10px;background:#ffd700;color:#000;
+                              font-weight:700;text-decoration:none;">
+      Get Premium / Ad-free
+    </a>
+  </div>
+
+  <script>
+  (function(){
+    var expiresTs = 1786447169000;
+    var bar = document.getElementById("premium-trial-bar");
+    var timeEl = document.getElementById("trial-remaining");
+    var closeBtn = document.getElementById("premium-trial-close");
+
+    function tick(){
+      var diff = Math.max(0, expiresTs - Date.now());
+      var m = Math.floor(diff/60000), s = Math.floor((diff%60000)/1000);
+      if (timeEl) timeEl.textContent = (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+      if (diff <= 0 && bar) { bar.remove(); }
+    }
+
+    function hideForViews(n){
+      try {
+        // 30 Tage Haltbarkeit; Wert wird serverseitig pro Request heruntergezählt
+        var maxAge = 60*60*24*30;
+        document.cookie = "premium_trial_bar_hide_remaining=" + (n || 8) +
+                          "; max-age=" + maxAge + "; path=/; samesite=Lax;secure";
+      } catch(e) {}
+      if (bar) bar.remove();
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", function(){ hideForViews(8); });
+    }
+    document.addEventListener("keydown", function(ev){
+      if (ev.key === "Escape") hideForViews(8);
+    });
+
+    tick();
+    setInterval(tick, 1000);
+  })();
+  </script>    <script src="js/bootstrap.min.js"></script>
+        </div>
+    <script>window.MGS_NOTIFICATION_I18N = {"remove":"remove","remove_notification":"Remove notification","manage_browser_push":"Manage browser push","enable_browser_push":"Enable browser push","browser_push_not_available":"Browser push not available","checking_status":"Checking status...","not_supported":"Not supported","blocked_in_browser":"Blocked in browser","inactive":"Inactive","active":"Active","permission_granted_not_registered":"Permission granted, but not registered","status_not_checkable":"Status cannot be checked","saving":"Saving...","saved":"Saved.","save_failed":"Could not be saved.","follow_event":"Follow event","unfollow_event":"Stop following","following_event":"Following this event","not_following_event":"Not following this event","follow_event_hint":"You can follow this event even if you are not participating.","follow_event_browser_push":"Browser push uses your global notification settings."};</script>    <script src="ajax/js/notifications.js?v=20260430-notification-json-fix"></script>
+    <script src="ajax/js/anonymous_notifications.js?v=20260430-menu-fix"></script>
+    <script src="pwa/main.js?v=20260526-pwa-install-fix"></script>
+  </body>
+</html>
+<script>console.log("4.900216mb")</script>Execution time: 0.3453609943 seconds

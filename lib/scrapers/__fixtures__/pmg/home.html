@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="it">
+<head><meta charset="utf-8"><title>PMG Livescore — Home (trimmed fixture)</title></head>
+<body>
+<!--
+  Trimmed capture of the pmglivescore.altervista.org home page (competition cards
+  only; the heavy <head>/<style>/<svg>/<script> from the real page were stripped).
+  The `.gara-item` markup below is the real site structure (attributes, class
+  names and the `.gara-stato` modifier). At capture time NO competition was
+  actually in progress (all live cards were `gara-stato--conclusa`), so the first
+  card has been hand-adjusted to `gara-stato--in_corso` and the second to
+  `gara-stato--programmata` so the test can assert the in_corso selection path.
+  Competition names + data-url values are real (resolve against wp-json).
+-->
+<div class="pmg-gare-list">
+
+  <div class="gara-item"
+       data-competizione="3ª TAPPA TROFEO FEDERALE MOUNTED GAMES"
+       data-url="https://pmglivescore.altervista.org/competizione/?competizione=3%C2%AA+TAPPA+TROFEO+FEDERALE+MOUNTED+GAMES"
+       onclick="window.location.href=this.dataset.url">
+    <div class="gara-header">
+      <h3 class="gara-title">
+        <a href="https://pmglivescore.altervista.org/competizione/?competizione=3%C2%AA+TAPPA+TROFEO+FEDERALE+MOUNTED+GAMES"
+           class="gara-edit-link" onclick="event.stopPropagation()">3ª TAPPA TROFEO FEDERALE MOUNTED GAMES</a>
+      </h3>
+    </div>
+    <div class="gara-footer">
+      <div class="gara-footer-row">
+        <div class="gara-footer-meta">
+          <div class="gara-luogo">PISA</div>
+          <div class="gara-date">20 Giugno 2026 - 21 Giugno 2026</div>
+        </div>
+        <div class="gara-logo-wrap">
+          <img decoding="async" src="https://pmglivescore.altervista.org/wp-content/uploads/2026/03/logo-pony-country-club-boccadarno.jpeg" alt="PISA" />
+          <span class="gara-centro-nome">Pony Country Club<br />Boccadarno</span>
+        </div>
+      </div>
+      <div class="gara-numero-gare">
+        <span>8 Gare</span>
+        <span class="gara-stato gara-stato--in_corso">In corso</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="gara-item"
+       data-competizione="CAMPIONATI ITALIANI MG A COPPIE"
+       data-url="https://pmglivescore.altervista.org/competizione/?competizione=CAMPIONATI+ITALIANI+MG+A+COPPIE"
+       onclick="window.location.href=this.dataset.url">
+    <div class="gara-header">
+      <h3 class="gara-title">
+        <a href="https://pmglivescore.altervista.org/competizione/?competizione=CAMPIONATI+ITALIANI+MG+A+COPPIE"
+           class="gara-edit-link" onclick="event.stopPropagation()">CAMPIONATI ITALIANI MG A COPPIE</a>
+      </h3>
+    </div>
+    <div class="gara-footer">
+      <div class="gara-footer-row">
+        <div class="gara-footer-meta">
+          <div class="gara-luogo">TORTONA</div>
+          <div class="gara-date">21 Maggio 2026 - 24 Maggio 2026</div>
+        </div>
+        <div class="gara-logo-wrap">
+          <span class="gara-centro-nome">Centro Ippico</span>
+        </div>
+      </div>
+      <div class="gara-numero-gare">
+        <span>7 Gare</span>
+        <span class="gara-stato gara-stato--programmata">Programmata</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="gara-item"
+       data-competizione="GOLD RIDERS ARENA"
+       data-url="https://pmglivescore.altervista.org/competizione/?competizione=GOLD+RIDERS+ARENA"
+       onclick="window.location.href=this.dataset.url">
+    <div class="gara-header">
+      <h3 class="gara-title">
+        <a href="https://pmglivescore.altervista.org/competizione/?competizione=GOLD+RIDERS+ARENA"
+           class="gara-edit-link" onclick="event.stopPropagation()">GOLD RIDERS ARENA</a>
+      </h3>
+    </div>
+    <div class="gara-footer">
+      <div class="gara-footer-row">
+        <div class="gara-footer-meta">
+          <div class="gara-luogo">MILANO</div>
+          <div class="gara-date">10 Gennaio 2026 - 11 Gennaio 2026</div>
+        </div>
+        <div class="gara-logo-wrap">
+          <span class="gara-centro-nome">Gold Riders</span>
+        </div>
+      </div>
+      <div class="gara-numero-gare">
+        <span>8 Gare</span>
+        <span class="gara-stato gara-stato--conclusa">Conclusa</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="gara-item"
+       data-competizione="2ª TAPPA TROFEO 4 REGIONI"
+       data-url="https://pmglivescore.altervista.org/competizione/?competizione=2%C2%AA+TAPPA+TROFEO+4+REGIONI"
+       onclick="window.location.href=this.dataset.url">
+    <div class="gara-header">
+      <h3 class="gara-title">
+        <a href="https://pmglivescore.altervista.org/competizione/?competizione=2%C2%AA+TAPPA+TROFEO+4+REGIONI"
+           class="gara-edit-link" onclick="event.stopPropagation()">2ª TAPPA TROFEO 4 REGIONI</a>
+      </h3>
+    </div>
+    <div class="gara-footer">
+      <div class="gara-footer-row">
+        <div class="gara-footer-meta">
+          <div class="gara-luogo">ROMA</div>
+          <div class="gara-date">5 Aprile 2026 - 6 Aprile 2026</div>
+        </div>
+        <div class="gara-logo-wrap">
+          <span class="gara-centro-nome">Circolo Ippico</span>
+        </div>
+      </div>
+      <div class="gara-numero-gare">
+        <span>8 Gare</span>
+        <span class="gara-stato gara-stato--conclusa">Conclusa</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
