@@ -1,11 +1,19 @@
 import { getScraper } from "@/lib/scrapers/registry";
 import { syncTargets } from "./discover";
 import { hasLiveTargets, refreshLiveWindow } from "./live-window";
-import { markScraped, selectStaleLiveTargets } from "./targets";
+import type { ScrapeTargetRow } from "./targets";
+import {
+  markScraped,
+  selectStaleIdleTargets,
+  selectStaleLiveTargets,
+} from "./targets";
 import { persistScrape } from "./upsert";
 
+export type PollMode = "live" | "archive";
+
 export interface PollSummary {
-  /** True when the live-window gate returned early (nothing to do). */
+  mode: PollMode;
+  /** True when the gate returned early (nothing to do). */
   skipped: boolean;
   processed: number;
   errors: number;
@@ -18,35 +26,14 @@ export interface PollOptions {
   timeoutMs?: number;
 }
 
-/**
- * One bounded poll tick: gate on the live window, take the few stalest live
- * targets, fetch+parse+upsert each under a per-fetch timeout, and mark them
- * scraped. A slow/failed target is skipped and retried next tick — it never
- * fails the whole invocation.
- */
-export async function runPollTick(
-  options: PollOptions = {},
-): Promise<PollSummary> {
-  const limit = options.limit ?? 3;
-  const timeoutMs = options.timeoutMs ?? 9000;
+// ---------------------------------------------------------------------------
+// Shared target-processing loop
+// ---------------------------------------------------------------------------
 
-  // Refresh the live window from the sources' own "in-progress" lists first, so
-  // events auto-open/close with no manual flag. A failure here is non-fatal.
-  const refreshController = new AbortController();
-  const refreshTimer = setTimeout(() => refreshController.abort(), timeoutMs);
-  try {
-    await refreshLiveWindow(refreshController.signal);
-  } catch {
-    // Leave existing flags; proceed with whatever is currently live.
-  } finally {
-    clearTimeout(refreshTimer);
-  }
-
-  if (!(await hasLiveTargets())) {
-    return { skipped: true, processed: 0, errors: 0 };
-  }
-
-  const targets = await selectStaleLiveTargets(limit);
+async function processTargets(
+  targets: ScrapeTargetRow[],
+  timeoutMs: number,
+): Promise<{ processed: number; errors: number }> {
   let processed = 0;
   let errors = 0;
 
@@ -76,5 +63,65 @@ export async function runPollTick(
     }
   }
 
-  return { skipped: false, processed, errors };
+  return { processed, errors };
+}
+
+// ---------------------------------------------------------------------------
+// Live poll tick
+// ---------------------------------------------------------------------------
+
+/**
+ * One bounded live-poll tick: refresh the live window, take the few stalest live
+ * targets, fetch+parse+upsert each under a per-fetch timeout, and mark them
+ * scraped. A slow/failed target is skipped and retried next tick.
+ */
+export async function runPollTick(
+  options: PollOptions = {},
+): Promise<PollSummary> {
+  const limit = options.limit ?? 3;
+  const timeoutMs = options.timeoutMs ?? 9000;
+
+  // Refresh the live window from the sources' own "in-progress" lists first, so
+  // events auto-open/close with no manual flag. A failure here is non-fatal.
+  const refreshController = new AbortController();
+  const refreshTimer = setTimeout(() => refreshController.abort(), timeoutMs);
+  try {
+    await refreshLiveWindow(refreshController.signal);
+  } catch {
+    // Leave existing flags; proceed with whatever is currently live.
+  } finally {
+    clearTimeout(refreshTimer);
+  }
+
+  if (!(await hasLiveTargets())) {
+    return { mode: "live", skipped: true, processed: 0, errors: 0 };
+  }
+
+  const targets = await selectStaleLiveTargets(limit);
+  const { processed, errors } = await processTargets(targets, timeoutMs);
+  return { mode: "live", skipped: false, processed, errors };
+}
+
+// ---------------------------------------------------------------------------
+// Archive poll tick
+// ---------------------------------------------------------------------------
+
+/**
+ * One bounded archive tick: take the single stalest IDLE (non-live) target,
+ * fetch+parse+upsert it. No live-window refresh (that's the live cron's job).
+ * Returns `skipped: true` when no idle targets remain (archive fully up to date).
+ */
+export async function runArchiveTick(
+  options: PollOptions = {},
+): Promise<PollSummary> {
+  const limit = options.limit ?? 1;
+  const timeoutMs = options.timeoutMs ?? 15000;
+
+  const targets = await selectStaleIdleTargets(limit);
+  if (targets.length === 0) {
+    return { mode: "archive", skipped: true, processed: 0, errors: 0 };
+  }
+
+  const { processed, errors } = await processTargets(targets, timeoutMs);
+  return { mode: "archive", skipped: false, processed, errors };
 }

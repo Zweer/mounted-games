@@ -19,6 +19,22 @@ export async function selectStaleLiveTargets(
     .limit(limit);
 }
 
+/**
+ * Bounded work per tick (archive mode): pick the N stalest IDLE targets
+ * (never-scraped first). Used by the archive cron to incrementally backfill
+ * historical data without overwhelming the sources.
+ */
+export async function selectStaleIdleTargets(
+  limit: number,
+): Promise<ScrapeTargetRow[]> {
+  return db
+    .select()
+    .from(scrapeTarget)
+    .where(eq(scrapeTarget.isLive, false))
+    .orderBy(sql`${scrapeTarget.lastScrapedAt} asc nulls first`)
+    .limit(limit);
+}
+
 /** Mark a target as scraped now, so the next tick moves on to the next stalest. */
 export async function markScraped(targetId: number): Promise<void> {
   await db
