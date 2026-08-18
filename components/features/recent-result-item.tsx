@@ -10,7 +10,7 @@ interface RecentResultItemProps {
 /**
  * A single recent-result row on the Home page (Option C · Frame 1 ".result-card"
  * style). Shows a trophy icon, competition + category, winner, and a "Conclusa"
- * chip. Links to the category page (archive detail).
+ * chip. Links to the parent competition (archive detail).
  */
 export function RecentResultItem({ result }: RecentResultItemProps): ReactNode {
   const formatLabel =
@@ -22,7 +22,7 @@ export function RecentResultItem({ result }: RecentResultItemProps): ReactNode {
 
   return (
     <Link
-      href={`/competitions/${result.categoryId}`}
+      href={`/competitions/${result.competitionId}`}
       className="flex items-center gap-3 rounded-[14px] border border-line bg-card px-3.5 py-3 transition-shadow hover:shadow-sm"
     >
       {/* Trophy icon */}

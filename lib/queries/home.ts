@@ -23,6 +23,8 @@ export interface LiveCategoryRow {
 
 export interface RecentResultRow {
   categoryId: number;
+  /** Parent competition id — the target for the archive drill-in link. */
+  competitionId: number;
   competitionName: string;
   categoryLabel: string;
   format: CompetitionFormat;
@@ -127,6 +129,7 @@ export async function getRecentResults(
   const rows = await db
     .select({
       categoryId: category.id,
+      competitionId: competition.id,
       competitionName: competition.name,
       format: category.format,
       label: category.label,
@@ -157,6 +160,7 @@ export async function getRecentResults(
     )
     .groupBy(
       category.id,
+      competition.id,
       competition.name,
       category.format,
       category.label,
@@ -204,6 +208,7 @@ export async function getRecentResults(
 
     results.push({
       categoryId: row.categoryId,
+      competitionId: row.competitionId,
       competitionName: row.competitionName,
       categoryLabel,
       format: row.format,
