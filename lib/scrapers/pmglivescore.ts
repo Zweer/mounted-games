@@ -2,6 +2,7 @@ import type { Cheerio, CheerioAPI } from "cheerio";
 import * as cheerio from "cheerio";
 import type { AnyNode } from "domhandler";
 import { cleanDisplay, normalizeKey, parseScore } from "../normalize";
+import { parseDateRange } from "./dates";
 import { fetchHtml } from "./http";
 import type {
   CompetitionFormat,
@@ -137,16 +138,21 @@ export const pmgLivescoreScraper: Scraper = {
       }
     }
 
-    const ids = new Set<number>();
+    const ids = new Map<number, { startsOn?: string; endsOn?: string }>();
     for (const comp of live) {
       for (const id of idsByTitle.get(normalizeKey(comp.name)) ?? []) {
-        ids.add(id);
+        ids.set(id, { startsOn: comp.startsOn, endsOn: comp.endsOn });
       }
     }
-    return [...ids].map((id) => ({
-      kind: "classifica",
-      url: `${PMG_BASE}/live-classifica-generale/?post_id=${id}`,
-    }));
+    return [...ids].map(([id, dates]) => {
+      const target: DiscoveredTarget = {
+        kind: "classifica",
+        url: `${PMG_BASE}/live-classifica-generale/?post_id=${id}`,
+      };
+      if (dates.startsOn) target.startsOn = dates.startsOn;
+      if (dates.endsOn) target.endsOn = dates.endsOn;
+      return target;
+    });
   },
 };
 
@@ -161,9 +167,14 @@ export const pmgLivescoreScraper: Scraper = {
  */
 export function parseInProgressCompetitions(
   html: string,
-): { name: string; url: string }[] {
+): { name: string; url: string; startsOn?: string; endsOn?: string }[] {
   const $ = cheerio.load(html);
-  const out: { name: string; url: string }[] = [];
+  const out: {
+    name: string;
+    url: string;
+    startsOn?: string;
+    endsOn?: string;
+  }[] = [];
   const seen = new Set<string>();
 
   $(".gara-item").each((_, el) => {
@@ -174,7 +185,10 @@ export function parseInProgressCompetitions(
     const key = normalizeKey(name);
     if (seen.has(key)) return;
     seen.add(key);
-    out.push({ name, url: card.attr("data-url") ?? "" });
+    const { startsOn, endsOn } = parseDateRange(
+      card.find(".gara-date").first().text(),
+    );
+    out.push({ name, url: card.attr("data-url") ?? "", startsOn, endsOn });
   });
 
   return out;

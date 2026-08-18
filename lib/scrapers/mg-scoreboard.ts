@@ -1,6 +1,7 @@
 import { type Cheerio, type CheerioAPI, load } from "cheerio";
 import type { AnyNode } from "domhandler";
 import { cleanDisplay, parseScore } from "../normalize";
+import { parseListDate, parseUpcomingDate } from "./dates";
 import { fetchHtml } from "./http";
 import type {
   CompetitionFormat,
@@ -99,26 +100,47 @@ export const mgScoreboardScraper: Scraper = {
   entryKind: "toplist",
 
   async listEvents(signal: AbortSignal): Promise<DiscoveredTarget[]> {
-    // Crawl the archive + upcoming + current-competitions lists; every event is
-    // seeded as a Toplist entry target (its sub-phases are discovered later,
-    // when the poller parses that Toplist page).
-    const lists = [
-      "index.php?seite=archiv",
-      "index.php?seite=upcoming",
-      "index.php",
-    ];
-    const ids = new Set<string>();
-    for (const path of lists) {
+    // Crawl the archive + upcoming + current lists. Each event is seeded as a
+    // Toplist entry target; its sub-phases are discovered later when the poller
+    // parses that Toplist page. The event page has NO date, so we capture it
+    // here (archive month panels + day badge; upcoming inline dates), preferring
+    // a defined date and never overwriting one with a later dateless sighting.
+    const byId = new Map<string, string | undefined>();
+    const add = (entries: EventEntry[]): void => {
+      for (const e of entries) {
+        if (!byId.has(e.id) || (e.startsOn && !byId.get(e.id))) {
+          byId.set(e.id, e.startsOn);
+        }
+      }
+    };
+
+    try {
+      const html = await fetchHtml(
+        `${MG_BASE}/index.php?seite=archiv`,
+        signal,
+        {
+          Cookie: "language=en",
+        },
+      );
+      add(parseArchiveEntries(html));
+    } catch {
+      // A missing/failed list must not abort the whole seed.
+    }
+
+    for (const path of ["index.php?seite=upcoming", "index.php"]) {
       try {
         const html = await fetchHtml(`${MG_BASE}/${path}`, signal, {
           Cookie: "language=en",
         });
-        for (const id of parseEventIds(html)) ids.add(id);
+        add(parseUpcomingEntries(html));
+        // Any remaining ids on the page (dateless) still get seeded.
+        add(parseEventIds(html).map((id) => ({ id })));
       } catch {
         // A missing/failed list must not abort the whole seed.
       }
     }
-    return [...ids].map((id) => toplistTarget(id));
+
+    return [...byId].map(([id, startsOn]) => toplistTarget(id, startsOn));
   },
 
   async listLiveEvents(signal: AbortSignal): Promise<DiscoveredTarget[]> {
@@ -137,11 +159,70 @@ const MG_BASE = (
 ).replace(/\/$/, "");
 
 /** Toplist entry-target for an event id (the seed/live entry point). */
-function toplistTarget(id: string): DiscoveredTarget {
-  return {
+function toplistTarget(id: string, startsOn?: string): DiscoveredTarget {
+  const target: DiscoveredTarget = {
     kind: "toplist",
     url: `${MG_BASE}/?seite=show_event&id=${id}&seite2=event_points_list_show`,
   };
+  if (startsOn) target.startsOn = startsOn;
+  return target;
+}
+
+/** An event id discovered from a list page, with its date when the list has one. */
+interface EventEntry {
+  id: string;
+  startsOn?: string;
+}
+
+/**
+ * Archive list: events are grouped in month panels. Each `div.panel` has a
+ * `panel-heading` (month + year, EN or DE) and `a.list-group-item` links whose
+ * `span.badge` is the day. → per-event `YYYY-MM-DD`. Scoped to the panels so the
+ * count badges elsewhere on the page are never mistaken for days.
+ */
+export function parseArchiveEntries(html: string): EventEntry[] {
+  const $ = load(html);
+  const byId = new Map<string, string | undefined>();
+  $("div.panel").each((_, panel) => {
+    const heading = $(panel).find(".panel-heading").first().text();
+    $(panel)
+      .find('a.list-group-item[href*="seite=show_event"]')
+      .each((_, a) => {
+        const id = $(a)
+          .attr("href")
+          ?.match(/[?&]id=(\d+)/)?.[1];
+        if (!id) return;
+        const day = $(a).find("span.badge").first().text().trim();
+        const startsOn = day
+          ? (parseListDate(heading, day) ?? undefined)
+          : undefined;
+        if (!byId.has(id) || (startsOn && !byId.get(id))) {
+          byId.set(id, startsOn);
+        }
+      });
+  });
+  return [...byId].map(([id, startsOn]) => ({ id, startsOn }));
+}
+
+/**
+ * Upcoming list: event links carry an inline date (`… - 19. Aug 26`). Parses the
+ * date from each `show_event` anchor's text; ids with no parseable date are
+ * still returned (dateless).
+ */
+export function parseUpcomingEntries(html: string): EventEntry[] {
+  const $ = load(html);
+  const byId = new Map<string, string | undefined>();
+  $('a[href*="seite=show_event"]').each((_, a) => {
+    const id = $(a)
+      .attr("href")
+      ?.match(/[?&]id=(\d+)/)?.[1];
+    if (!id) return;
+    const startsOn = parseUpcomingDate($(a).text()) ?? undefined;
+    if (!byId.has(id) || (startsOn && !byId.get(id))) {
+      byId.set(id, startsOn);
+    }
+  });
+  return [...byId].map(([id, startsOn]) => ({ id, startsOn }));
 }
 
 /** Collect every distinct `show_event` event id from an archive/list page. */

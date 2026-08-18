@@ -45,6 +45,13 @@ async function processTargets(
       const html = await scraper.fetch(target.url, controller.signal);
       const ctx = { url: target.url, kind: target.kind };
       const scrape = scraper.parse(html, ctx);
+      // The event page carries no date; use the one captured at discovery.
+      if (target.startsOn && !scrape.competition.startsOn) {
+        scrape.competition.startsOn = target.startsOn;
+      }
+      if (target.endsOn && !scrape.competition.endsOn) {
+        scrape.competition.endsOn = target.endsOn;
+      }
       await persistScrape(scrape);
       await markScraped(target.id);
       // Parsing an entry page also seeds its sub-phase targets, inheriting the

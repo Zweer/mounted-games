@@ -121,6 +121,14 @@ export interface ScrapeContext {
 export interface DiscoveredTarget {
   kind: string;
   url: string;
+  /**
+   * Event date captured at discovery from the source list page (the event page
+   * itself carries no date). ISO `YYYY-MM-DD`. Carried onto `scrape_target` and
+   * injected into the competition when the entry page is persisted.
+   */
+  startsOn?: string;
+  /** Event end date when the source list exposes a range (pmg cards). */
+  endsOn?: string;
 }
 
 export interface Scraper {

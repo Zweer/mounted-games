@@ -26,9 +26,16 @@ export async function syncTargets(
     kind: t.kind,
     categoryId: opts.categoryId,
     isLive: opts.isLive ?? false,
+    startsOn: t.startsOn ?? null,
+    endsOn: t.endsOn ?? null,
   }));
 
-  const set: Record<string, unknown> = { kind: sql`excluded.kind` };
+  const set: Record<string, unknown> = {
+    kind: sql`excluded.kind`,
+    // Fill a date when discovery now has one; never overwrite a set date with null.
+    startsOn: sql`coalesce(excluded.starts_on, ${scrapeTarget.startsOn})`,
+    endsOn: sql`coalesce(excluded.ends_on, ${scrapeTarget.endsOn})`,
+  };
   if (opts.categoryId !== undefined) set.categoryId = sql`excluded.category_id`;
   if (opts.isLive !== undefined) set.isLive = sql`excluded.is_live`;
 

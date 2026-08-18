@@ -1,5 +1,6 @@
 import {
   boolean,
+  date,
   index,
   integer,
   pgTable,
@@ -53,6 +54,13 @@ export const scrapeTarget = pgTable(
     }),
     isLive: boolean("is_live").default(false).notNull(),
     lastScrapedAt: timestamp("last_scraped_at"),
+    /**
+     * Event date captured at discovery from the source list page (event pages
+     * carry no date). Threaded into `competition.starts_on`/`ends_on` when the
+     * entry page is persisted. `ends_on` is set only when the list gives a range.
+     */
+    startsOn: date("starts_on"),
+    endsOn: date("ends_on"),
   },
   (t) => [
     unique("scrape_target_url_uq").on(t.url),

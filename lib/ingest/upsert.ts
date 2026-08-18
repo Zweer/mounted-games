@@ -1,5 +1,5 @@
 import type { ExtractTablesWithRelations } from "drizzle-orm";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import type * as schema from "@/db/schema";
 import {
@@ -149,7 +149,25 @@ async function resolveCompetition(
       ),
     )
     .limit(1);
-  if (existing[0]) return existing[0].id;
+  if (existing[0]) {
+    // The competition already exists (created by an earlier category of the
+    // same event). Fill dates that arrived later and are still empty, without
+    // ever overwriting a value already set.
+    const patch: Record<string, unknown> = {};
+    if (c.startsOn) {
+      patch.startsOn = sql`coalesce(${competition.startsOn}, ${c.startsOn})`;
+    }
+    if (c.endsOn) {
+      patch.endsOn = sql`coalesce(${competition.endsOn}, ${c.endsOn})`;
+    }
+    if (Object.keys(patch).length > 0) {
+      await db
+        .update(competition)
+        .set(patch)
+        .where(eq(competition.id, existing[0].id));
+    }
+    return existing[0].id;
+  }
 
   const nationId = c.nation ? await resolveNation(db, c.nation, caches) : null;
   const [row] = await db

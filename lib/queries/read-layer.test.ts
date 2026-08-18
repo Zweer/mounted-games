@@ -18,6 +18,7 @@ async function applySchema(client: PGlite): Promise<void> {
     "0000_clever_sage.sql",
     "0001_shocking_marvel_apes.sql",
     "0002_young_natasha_romanoff.sql",
+    "0003_striped_shen.sql",
   ];
   for (const file of files) {
     const raw = readFileSync(join(MIGRATIONS_DIR, file), "utf-8");
@@ -363,6 +364,15 @@ describe("Read layer — pglite integration", () => {
       expect(first).toHaveProperty("competitionName");
       expect(first).toHaveProperty("categoryLabel");
       expect(first).toHaveProperty("winnerLabel");
+      // competitionId must be the category's REAL parent competition — the
+      // archive drill-in target. Regression guard for the Home card that
+      // previously linked /competitions/{categoryId} (wrong id space).
+      expect(typeof first.competitionId).toBe("number");
+      const parent = await getCompetition(first.competitionId, db);
+      expect(parent).not.toBeNull();
+      expect(parent?.categories.some((c) => c.id === first.categoryId)).toBe(
+        true,
+      );
     });
   });
 });
