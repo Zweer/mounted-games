@@ -4,6 +4,7 @@ import type { AnyNode } from "domhandler";
 import { cleanDisplay, normalizeKey, parseScore } from "../normalize";
 import { parseDateRange } from "./dates";
 import { fetchHtml } from "./http";
+import { inferLevel } from "./level";
 import type {
   CompetitionFormat,
   DiscoveredTarget,
@@ -365,12 +366,15 @@ function mode(values: number[]): number {
 
 function buildCompetition($: CheerioAPI): NormalizedCompetition {
   const raw = acfValue($, "fea_post_title");
-  return {
+  const competition: NormalizedCompetition = {
     name: cleanDisplay(raw),
     groupingKey: normalizeKey(raw),
     nation: ITALY,
     sourceTitleRaw: raw,
   };
+  const level = inferLevel(raw, "pmglivescore");
+  if (level) competition.level = level;
+  return competition;
 }
 
 function buildCategory(

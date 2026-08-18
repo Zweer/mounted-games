@@ -1,8 +1,9 @@
 import { type Cheerio, type CheerioAPI, load } from "cheerio";
 import type { AnyNode } from "domhandler";
-import { cleanDisplay, parseScore } from "../normalize";
+import { cleanDisplay, normalizeKey, parseScore } from "../normalize";
 import { parseListDate, parseUpcomingDate } from "./dates";
 import { fetchHtml } from "./http";
+import { inferLevel } from "./level";
 import type {
   CompetitionFormat,
   DiscoveredTarget,
@@ -40,8 +41,9 @@ export const mgScoreboardScraper: Scraper = {
     const format = detectFormat(title);
     const eventId = parseEventId(ctx.url);
 
-    const competition = buildCompetition(title);
-    const category = buildCategory(title, format, eventId);
+    const { base, label } = splitEventTitle(title);
+    const competition = buildCompetition(title, base);
+    const category = buildCategory(title, format, eventId, label);
 
     let participants: NormalizedParticipant[] = [];
     let results: NormalizedResult[] = [];
@@ -401,27 +403,81 @@ function parseEventId(url: string): string {
   return url.match(/[?&]id=(\d+)/)?.[1] ?? "";
 }
 
-function buildCompetition(title: string): NormalizedCompetition {
-  return {
-    name: title,
-    groupingKey: groupingKeyFromTitle(title),
+function buildCompetition(title: string, base: string): NormalizedCompetition {
+  const competition: NormalizedCompetition = {
+    name: base,
+    groupingKey: groupingKeyFromBase(base),
     sourceTitleRaw: title,
   };
+  const level = inferLevel(title, "mg-scoreboard");
+  if (level) competition.level = level;
+  return competition;
 }
 
-/** Strip a trailing age/category suffix, then normalize to a grouping key. */
-function groupingKeyFromTitle(title: string): string {
-  const base = title.replace(
-    /\s*[-–]?\s*(under\s*\d+\s*[ab]?s?|u\d+\s*[ab]?|open|ok|pro)\s*$/i,
-    "",
-  );
-  return cleanDisplay(base).toLowerCase();
+/**
+ * Age-band + format tokens that mg bakes into the event title, matched at either
+ * end so both suffix bands (`… - U18`, `… Open Individuals`) and prefix bands
+ * (`U 12 WPC 2026`, `Open WPC 2026`) are stripped down to the shared event name.
+ */
+const CATEGORY_TOKEN =
+  "u\\s?\\d{1,2}\\s?[ab]?s?|under\\s?\\d{1,2}\\s?[ab]?s?|open(?:\\s?pro)?|ok|pro|reserve|musketeers|25\\s?&\\s?over|novice|intermediate|green\\s?pony|elite|indice\\s?\\d+|teams?|individuals?|pairs?|paires?|squadre|coppie|individuali";
+const TRAILING_TOKEN = new RegExp(
+  `\\s*[-–—:]?\\s*(${CATEGORY_TOKEN})\\s*$`,
+  "i",
+);
+const LEADING_TOKEN = new RegExp(
+  `^\\s*(${CATEGORY_TOKEN})\\s*[-–—:]?\\s+`,
+  "i",
+);
+
+/**
+ * Split a raw mg event title into the shared event `base` name and the removed
+ * category `label` (e.g. `World Team Championships 2026 - Reserve Individuals` →
+ * base `World Team Championships 2026`, label `Reserve Individuals`). Age-band
+ * and format tokens are stripped from both ends, repeatedly, but never down to
+ * nothing (a short remainder is kept intact). This makes all age bands of one
+ * real event share a `base` (hence one competition) while the per-band string
+ * survives as the category label.
+ */
+export function splitEventTitle(title: string): {
+  base: string;
+  label?: string;
+} {
+  let base = cleanDisplay(title);
+  const removed: string[] = [];
+
+  let m = base.match(TRAILING_TOKEN);
+  while (m && base.replace(TRAILING_TOKEN, "").trim().length > 3) {
+    removed.unshift(m[1].trim());
+    base = base.replace(TRAILING_TOKEN, "").trim();
+    m = base.match(TRAILING_TOKEN);
+  }
+  m = base.match(LEADING_TOKEN);
+  while (m && base.replace(LEADING_TOKEN, "").trim().length > 3) {
+    removed.push(m[1].trim());
+    base = base.replace(LEADING_TOKEN, "").trim();
+    m = base.match(LEADING_TOKEN);
+  }
+
+  base = base.replace(/^\s*[-–—:]\s*|\s*[-–—:]\s*$/g, "").trim();
+  const label = cleanDisplay(removed.join(" ")).trim();
+  return label ? { base, label } : { base };
+}
+
+/**
+ * Grouping key from the event base name. Keeps any year already in the base
+ * (the common case — the year lives in the title), so distinct editions never
+ * merge while same-year age bands cluster onto one competition.
+ */
+function groupingKeyFromBase(base: string): string {
+  return normalizeKey(base);
 }
 
 function buildCategory(
   title: string,
   format: CompetitionFormat,
   eventId: string,
+  label?: string,
 ): NormalizedCategory {
   const { ageBand, division } = parseAgeBand(title);
   const category: NormalizedCategory = {
@@ -431,6 +487,9 @@ function buildCategory(
   };
   if (ageBand) category.ageBand = ageBand;
   if (division) category.division = division;
+  // The per-band remainder of the title (e.g. "Reserve Individuals", "Open"),
+  // so a category is readable even when no U-band was parseable.
+  if (label) category.label = label;
   return category;
 }
 
