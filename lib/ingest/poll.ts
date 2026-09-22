@@ -1,8 +1,14 @@
+import { createHash } from "node:crypto";
 import { getScraper } from "@/lib/scrapers/registry";
 import { syncTargets } from "./discover";
+import { claimScheduledTask } from "./lease";
 import { hasLiveTargets, refreshLiveWindow } from "./live-window";
 import type { ScrapeTargetRow } from "./targets";
 import {
+  claimTarget,
+  DEFAULT_ARCHIVE_POLL_INTERVAL_MS,
+  DEFAULT_LIVE_POLL_INTERVAL_MS,
+  markFailed,
   markScraped,
   selectStaleIdleTargets,
   selectStaleLiveTargets,
@@ -24,7 +30,12 @@ export interface PollOptions {
   limit?: number;
   /** Per-fetch timeout in ms (AbortSignal). */
   timeoutMs?: number;
+  /** Maximum wall-clock budget for this invocation. */
+  budgetMs?: number;
 }
+
+const DISCOVERY_INTERVAL_MS = 5 * 60_000;
+const ARCHIVE_INTERVAL_MS = 15 * 60_000;
 
 // ---------------------------------------------------------------------------
 // Shared target-processing loop
@@ -33,16 +44,26 @@ export interface PollOptions {
 async function processTargets(
   targets: ScrapeTargetRow[],
   timeoutMs: number,
+  budgetMs: number,
+  intervalMs: number,
 ): Promise<{ processed: number; errors: number }> {
+  const deadline = Date.now() + budgetMs;
   let processed = 0;
   let errors = 0;
 
   for (const target of targets) {
+    if (Date.now() >= deadline || !(await claimTarget(target.id))) break;
     const scraper = getScraper(target.source);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const html = await scraper.fetch(target.url, controller.signal);
+      const contentHash = createHash("sha256").update(html).digest("hex");
+      if (contentHash === target.contentHash) {
+        await markScraped(target.id, contentHash, intervalMs);
+        processed += 1;
+        continue;
+      }
       const ctx = { url: target.url, kind: target.kind };
       const scrape = scraper.parse(html, ctx);
       // The event page carries no date; use the one captured at discovery.
@@ -53,7 +74,7 @@ async function processTargets(
         scrape.competition.endsOn = target.endsOn;
       }
       await persistScrape(scrape);
-      await markScraped(target.id);
+      await markScraped(target.id, contentHash, intervalMs);
       // Parsing an entry page also seeds its sub-phase targets, inheriting the
       // event's live flag so the whole event is polled while it runs.
       if (target.kind === scraper.entryKind) {
@@ -64,6 +85,7 @@ async function processTargets(
       processed += 1;
     } catch {
       // Slow/failed target: skip, retry next tick.
+      await markFailed(target.id);
       errors += 1;
     } finally {
       clearTimeout(timer);
@@ -85,19 +107,21 @@ async function processTargets(
 export async function runPollTick(
   options: PollOptions = {},
 ): Promise<PollSummary> {
-  const limit = options.limit ?? 3;
-  const timeoutMs = options.timeoutMs ?? 9000;
+  const limit = options.limit ?? 2;
+  const timeoutMs = options.timeoutMs ?? 6000;
+  const budgetMs = options.budgetMs ?? 20_000;
 
-  // Refresh the live window from the sources' own "in-progress" lists first, so
-  // events auto-open/close with no manual flag. A failure here is non-fatal.
-  const refreshController = new AbortController();
-  const refreshTimer = setTimeout(() => refreshController.abort(), timeoutMs);
-  try {
-    await refreshLiveWindow(refreshController.signal);
-  } catch {
-    // Leave existing flags; proceed with whatever is currently live.
-  } finally {
-    clearTimeout(refreshTimer);
+  // Refresh the live window periodically, not on every dispatcher invocation.
+  if (await claimScheduledTask("live-discovery", DISCOVERY_INTERVAL_MS)) {
+    const refreshController = new AbortController();
+    const refreshTimer = setTimeout(() => refreshController.abort(), timeoutMs);
+    try {
+      await refreshLiveWindow(refreshController.signal);
+    } catch {
+      // Leave existing flags; proceed with whatever is currently live.
+    } finally {
+      clearTimeout(refreshTimer);
+    }
   }
 
   if (!(await hasLiveTargets())) {
@@ -105,7 +129,12 @@ export async function runPollTick(
   }
 
   const targets = await selectStaleLiveTargets(limit);
-  const { processed, errors } = await processTargets(targets, timeoutMs);
+  const { processed, errors } = await processTargets(
+    targets,
+    timeoutMs,
+    budgetMs,
+    DEFAULT_LIVE_POLL_INTERVAL_MS,
+  );
   return { mode: "live", skipped: false, processed, errors };
 }
 
@@ -122,13 +151,40 @@ export async function runArchiveTick(
   options: PollOptions = {},
 ): Promise<PollSummary> {
   const limit = options.limit ?? 1;
-  const timeoutMs = options.timeoutMs ?? 15000;
+  const timeoutMs = options.timeoutMs ?? 6000;
+  const budgetMs = options.budgetMs ?? 20_000;
 
   const targets = await selectStaleIdleTargets(limit);
   if (targets.length === 0) {
     return { mode: "archive", skipped: true, processed: 0, errors: 0 };
   }
 
-  const { processed, errors } = await processTargets(targets, timeoutMs);
+  const { processed, errors } = await processTargets(
+    targets,
+    timeoutMs,
+    budgetMs,
+    DEFAULT_ARCHIVE_POLL_INTERVAL_MS,
+  );
   return { mode: "archive", skipped: false, processed, errors };
+}
+
+/** One dispatcher tick: live work first, archive only during an idle slot. */
+export async function runDispatcherTick(
+  options: PollOptions = {},
+): Promise<{ live: PollSummary; archive: PollSummary | null }> {
+  const live = await runPollTick(options);
+  if (
+    !live.skipped ||
+    !(await claimScheduledTask("archive", ARCHIVE_INTERVAL_MS))
+  ) {
+    return { live, archive: null };
+  }
+  return {
+    live,
+    archive: await runArchiveTick({
+      ...options,
+      timeoutMs: Math.min(options.timeoutMs ?? 6000, 4000),
+      budgetMs: Math.min(options.budgetMs ?? 20_000, 8000),
+    }),
+  };
 }

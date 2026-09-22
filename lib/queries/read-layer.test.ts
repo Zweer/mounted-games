@@ -19,6 +19,7 @@ async function applySchema(client: PGlite): Promise<void> {
     "0001_shocking_marvel_apes.sql",
     "0002_young_natasha_romanoff.sql",
     "0003_striped_shen.sql",
+    "0004_smart_ingestion.sql",
   ];
   for (const file of files) {
     const raw = readFileSync(join(MIGRATIONS_DIR, file), "utf-8");

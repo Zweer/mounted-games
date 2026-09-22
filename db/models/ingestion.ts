@@ -54,6 +54,12 @@ export const scrapeTarget = pgTable(
     }),
     isLive: boolean("is_live").default(false).notNull(),
     lastScrapedAt: timestamp("last_scraped_at"),
+    nextPollAt: timestamp("next_poll_at"),
+    lastAttemptAt: timestamp("last_attempt_at"),
+    lastSuccessAt: timestamp("last_success_at"),
+    leasedUntil: timestamp("leased_until"),
+    failureCount: integer("failure_count").default(0).notNull(),
+    contentHash: text("content_hash"),
     /**
      * Event date captured at discovery from the source list page (event pages
      * carry no date). Threaded into `competition.starts_on`/`ends_on` when the
@@ -64,6 +70,16 @@ export const scrapeTarget = pgTable(
   },
   (t) => [
     unique("scrape_target_url_uq").on(t.url),
-    index("scrape_target_live_stale_idx").on(t.isLive, t.lastScrapedAt),
+    index("scrape_target_live_stale_idx").on(t.isLive, t.nextPollAt),
   ],
 );
+
+/** Singleton leases used to prevent overlapping dispatcher invocations. */
+export const ingestionState = pgTable("ingestion_state", {
+  job: text("job").primaryKey(),
+  leaseUntil: timestamp("lease_until"),
+  nextRunAt: timestamp("next_run_at"),
+  lastDiscoveryAt: timestamp("last_discovery_at"),
+  nextDiscoveryAt: timestamp("next_discovery_at"),
+  lastArchiveAt: timestamp("last_archive_at"),
+});

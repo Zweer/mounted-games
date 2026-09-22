@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
-import { type PollMode, runArchiveTick, runPollTick } from "@/lib/ingest/poll";
+import { acquirePollLease, releasePollLease } from "@/lib/ingest/lease";
+import {
+  type PollMode,
+  runArchiveTick,
+  runDispatcherTick,
+  runPollTick,
+} from "@/lib/ingest/poll";
 
 // The poller does per-request DB + network work; never statically optimized.
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 /** Allowed mode values. Default: "live". */
 const MODES: Set<PollMode> = new Set(["live", "archive"]);
@@ -17,7 +24,7 @@ const MODES: Set<PollMode> = new Set(["live", "archive"]);
  *  - `live` (default): refresh the live window + scrape the stalest live targets.
  *  - `archive`: scrape 1 idle target (incremental historical backfill).
  */
-export async function POST(request: Request): Promise<Response> {
+async function handle(request: Request): Promise<Response> {
   const secret = process.env.CRON_SECRET;
   const authorization = request.headers.get("authorization");
 
@@ -26,13 +33,31 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const url = new URL(request.url);
-  const modeParam = url.searchParams.get("mode") ?? "live";
+  const requestedMode = url.searchParams.get("mode");
+  const modeParam = requestedMode ?? "live";
   const mode: PollMode = MODES.has(modeParam as PollMode)
     ? (modeParam as PollMode)
     : "live";
 
-  const summary =
-    mode === "archive" ? await runArchiveTick() : await runPollTick();
+  if (!(await acquirePollLease())) {
+    return NextResponse.json(
+      { skipped: true, reason: "dispatcher_locked" },
+      { status: 200 },
+    );
+  }
 
-  return NextResponse.json(summary);
+  try {
+    const summary =
+      mode === "archive"
+        ? await runArchiveTick()
+        : requestedMode === null
+          ? await runDispatcherTick()
+          : await runPollTick();
+    return NextResponse.json(summary);
+  } finally {
+    await releasePollLease();
+  }
 }
+
+export const GET = handle;
+export const POST = handle;

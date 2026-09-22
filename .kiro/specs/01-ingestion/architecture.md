@@ -9,8 +9,8 @@
 └───────────────┬─────────────────────────────────────────────┘
                 ↓
 ┌─────────────────────────────────────────────────────────────┐
-│  LIVE-WINDOW GATE                                            │
-│  Any competition active now? No → 200 {skipped} immediately  │
+│  SMART DISPATCHER                                           │
+│  DB lease → scheduled discovery → due live target → archive  │
 └───────────────┬─────────────────────────────────────────────┘
                 ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -47,6 +47,7 @@ lib/
 │   ├── poll.ts                # orchestrator: gate → select → fetch → upsert
 │   ├── live-window.ts         # is there an active competition now?
 │   ├── targets.ts             # scrape_targets selection + staleness
+│   ├── lease.ts               # dispatcher lease + scheduled jobs
 │   └── upsert.ts              # idempotent upserts + cross-source dedup
 db/schema.ts                   # scrape_targets + domain tables (finalized post-discovery)
 ```
@@ -56,7 +57,16 @@ db/schema.ts                   # scrape_targets + domain tables (finalized post-
 - **cheerio, not a browser** — sources are server-rendered; Playwright is discovery-only.
 - **Bounded work per tick** — the poller never scrapes a whole event at once; it processes
   the few stalest live targets, keeping each invocation well under the function timeout.
-- **Per-fetch `AbortSignal` timeout** (~8-10s) — a slow source page is abandoned and
+- **Single smart dispatcher** — cron-job.org invokes `/api/poll` every minute; a persisted
+  lease prevents overlap, discovery runs only every few minutes, live targets use
+  `next_poll_at` plus exponential failure backoff, and archive work runs only in an idle
+  scheduled slot.
+- **Content-hash short circuit** — unchanged HTML updates scheduling metadata but skips
+  Cheerio parsing and Neon upserts.
+- **Invocation budget** — the dispatcher stops normal live work after a small wall-clock
+  budget and gives archive work a smaller budget, rather than consuming the full Vercel
+  function duration.
+- **Per-fetch `AbortSignal` timeout** (~4-6s) — a slow source page is abandoned and
   retried next tick instead of failing the whole invocation.
 - **Live-window gating** — outside a competition the poller returns immediately, so a
   1-per-minute external ping costs almost nothing off-season and is polite to the sources.

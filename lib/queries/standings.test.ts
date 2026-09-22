@@ -13,7 +13,7 @@ const MIGRATIONS_DIR = join(__dirname, "..", "..", "db");
 /**
  * Apply the generated drizzle migrations to a fresh database by executing the
  * raw SQL. Split on drizzle's `--> statement-breakpoint` marker, run in filename
- * order (0000 auth → 0001 domain → 0002 scrape_target url unique).
+ * order (0000 auth → 0001 domain → 0004 ingestion scheduling).
  */
 async function applySchema(client: PGlite): Promise<void> {
   const files = [
@@ -21,6 +21,7 @@ async function applySchema(client: PGlite): Promise<void> {
     "0001_shocking_marvel_apes.sql",
     "0002_young_natasha_romanoff.sql",
     "0003_striped_shen.sql",
+    "0004_smart_ingestion.sql",
   ];
   for (const file of files) {
     const raw = readFileSync(join(MIGRATIONS_DIR, file), "utf-8");
