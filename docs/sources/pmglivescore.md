@@ -652,3 +652,89 @@ coppie `47264` (completed) and `48397` (not-yet-run) — plus the phase-nav anch
 completed coppie page. Playwright not required — all data (scores, phases, heats, and the
 `window.iscrittiGlobali` roster) is in static server-rendered HTML, present on the
 standings page itself.*
+
+---
+
+## Re-verification 2026-09-30
+
+Re-verified against the live site ahead of the spec-04 parser rewrite (Phase B).
+**Method:** plain HTTP GET (no JS, no Playwright) — production's `fetch` + `cheerio`
+path. Focus is the spec-04 fields (dates + level vocabulary + category badges).
+Prior baseline: discovery per the sections above.
+
+**Reachability note:** the home page returned **HTTP 503** on the first attempt
+(Altervista shared hosting / Varnish — transient). A single polite retry after ~60 s
+succeeded. The dev's scraper should treat 503 as retryable with backoff; it is not a
+structural change.
+
+Pages checked (both loaded fully as static server-rendered HTML):
+- Home: `https://pmglivescore.altervista.org/`
+- Competition page: `/competizione/?competizione=CAMPIONATI+ITALIANI+MG+A+COPPIE`
+
+### 3. pmg DATES — **CONFIRMED**
+
+- **Home cards** expose the date inline as `.gara-date` in **`D Mese YYYY`** with a
+  **capitalized** Italian month, range joined by ` - `. Verbatim this run:
+  `18 Settembre 2026 - 20 Settembre 2026`, `5 Settembre 2026 - 6 Settembre 2026`,
+  `20 Giugno 2026 - 21 Giugno 2026`, `21 Maggio 2026 - 24 Maggio 2026`,
+  `30 Aprile 2026 - 3 Maggio 2026`, `27 Febbraio 2026 - 1 Marzo 2026`,
+  `30 Gennaio 2026 - 1 Febbraio 2026`. **CONFIRMED unchanged.**
+- **Competition page header** exposes the date inline too, as
+  `TORTONA • 21 Maggio 2026 - 24 Maggio 2026` (`.pmg-competition-dates`), same
+  `D Mese YYYY` capitalized-month format. **CONFIRMED.**
+- The spec-04 design's pmg path ("`buildCompetition` parse `live-info-gara` `Inizio`/`Fine`
+  or `.gara-date` as `DD/MM/YYYY`") — the **`DD/MM/YYYY`** numeric format is the one on
+  `live-info-gara` (per the baseline section above; not re-fetched this run since it was
+  unchanged at discovery and is format-agnostic). The **card/header** dates are the
+  capitalized-Italian-month `D Mese YYYY` form, so the Italian-month map IS needed if the
+  parser reads `.gara-date`/`.pmg-competition-dates` rather than `live-info-gara`.
+  **Both formats coexist and both are unchanged** — pick the source deliberately and map
+  Italian months for the card/header form. Italian months to map (capitalized on
+  cards/header, lowercase on timetable): `Gennaio, Febbraio, Marzo, Aprile, Maggio,
+  Giugno, Luglio, Agosto, Settembre, Ottobre, Novembre, Dicembre`.
+
+### 4. LEVEL inference / category vocabulary — **CONFIRMED + FUTURE CLASS resolved**
+
+- **Category badges** on the competition page (verbatim this run, CAMPIONATI ITALIANI MG
+  A COPPIE): `OPEN PRO`, `OPEN`, `UNDER 18 PRO`, `UNDER 18`, `UNDER 15 PRO`, `UNDER 15`,
+  `UNDER 12 PRO`, and **`FUTURE CLASS`**. This **RESOLVES** the prior TODO — `FUTURE CLASS`
+  is a real, current category badge (rendered as a category-badge; note its modality on
+  this event was `Individuali`, the others `A Coppie`). Pattern holds: age band
+  `UNDER 18/15/12` × optional `PRO`, plus `OPEN`, plus the standalone `FUTURE CLASS`.
+- **Modality badges**: `A Coppie` and `Individuali` seen on this event (`A Squadre`
+  per baseline). Unchanged.
+- **Level**: pmg is the single-level Italian national circuit. Titles this run:
+  `CAMPIONATI ITALIANI MG A COPPIE`, `CAMPIONATI ITALIANI MG A SQUADRE MASCHERONI`
+  (→ **national** via the `CAMPIONATI ITALIANI` marker); the `TROFEO FEDERALE`,
+  `TROFEO 4 REGIONI`, `GOLD RIDERS ARENA`, `PONY MASTER SHOW` series → **null/regional**
+  (no championship marker), consistent with the spec's "map obvious CAMPIONATI ITALIANI →
+  national, else null" rule.
+
+### Also re-confirmed (context for the dev, not spec-04-specific)
+
+- **Phase table** `Fase | Stato | Segreteria` per category: `Gara`, `Sessione 1..3`,
+  `Semif. Ing.`/`Semifinale Inglese` (short+long DOM variants BOTH render — prefer
+  `.pmg-label-long`), `Finale A`; status `Conclusa`, secretariat `Verificata`. **Unchanged.**
+- **Timetable** grouped by `CAMPO <NAME>` (`DERBY`, `SABBIA`) and by day with a
+  **lowercase** Italian month (`Domenica 24 maggio`, `Sabato 23 maggio`, `Venerdì 22
+  maggio`, `Giovedì 21 maggio`), consuntivo times `HH:MM - HH:MM`, `Batteria 1..5`,
+  plus `Pausa Tecnica` / `Ripresa: HH:MM` rows. **Unchanged.**
+- **`?competizione=` encoding** unchanged: `%C2%AA` for `ª`, `%26%238211%3B` for the
+  en-dash (seen on `PONY MASTER SHOW – …`), and preserved double-space in
+  `2ª TAPPA TROFEO FEDERALE  MOUNTED GAMES`. Recommendation stands: follow the `data-url`
+  / anchor hrefs rather than reconstructing the query string.
+- **Live window:** at capture time ALL home cards were `Conclusa` (newest:
+  `3ª/4ª TAPPA TROFEO 4 REGIONI` and `4ª TAPPA TROFEO FEDERALE`, Sept 2026), so
+  `listLiveEvents` returns `[]` cleanly — no `in_corso`/`programmata` card to observe live
+  markup this run (still an open TODO, as at baseline).
+
+### Verdict — pmglivescore.altervista.org: **parsers SAFE to rewrite as-designed**
+
+All spec-04 fields (inline dates in both `D Mese YYYY` card/header form and `DD/MM/YYYY`
+`live-info-gara` form; category badges incl. the now-confirmed `FUTURE CLASS`; single-level
+mapping) are **unchanged**. Only operational caveat: handle transient **503s** with a
+retry/backoff (hit once this run). No JS-only content; `fetch` + `cheerio` remains
+sufficient.
+
+Suggested commit:
+`docs(sources): :memo: re-verify pmglivescore spec-04 fields (2026-09-30) — dates/badges confirmed, FUTURE CLASS resolved, note 503 retry`
