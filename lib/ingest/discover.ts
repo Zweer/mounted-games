@@ -10,7 +10,7 @@ import type { DiscoveredTarget, SourceKind } from "@/lib/scrapers/types";
  * updated only when explicitly provided (so a later category-link or live-flag
  * pass does not clobber values set elsewhere).
  *
- * No interactive transaction is used — neon-http does not support them — the
+ * No interactive transaction is used — Cloudflare D1 does not support them — the
  * single `INSERT … ON CONFLICT` statement is itself atomic and idempotent.
  */
 export async function syncTargets(

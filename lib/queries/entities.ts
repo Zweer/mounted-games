@@ -87,7 +87,7 @@ async function participationForParticipants(
       format: category.format,
       phaseLabel: phase.label,
       rank: result.rank,
-      pointsTotal: result.pointsTotal,
+      pointsTotal: result.pointsTotalCents,
     })
     .from(result)
     .innerJoin(participant, eq(participant.id, result.participantId))

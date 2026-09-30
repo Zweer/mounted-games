@@ -1,13 +1,85 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+/// <reference types="@cloudflare/workers-types" />
+import { createRequire } from "node:module";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import type { DrizzleD1Database } from "drizzle-orm/d1";
+import { drizzle as drizzleD1 } from "drizzle-orm/d1";
 import * as schema from "@/db/schema";
 
-const connectionString = process.env.DATABASE_URL;
+/**
+ * Dialect-aware, request-scoped database factory.
+ *
+ * The app now runs on Cloudflare Workers + D1 (SQLite). Workers has NO ambient
+ * `process.env` and NO module-level connection: the D1 binding arrives per
+ * request on the Worker `env`. So — unlike the old Neon module that threw at
+ * import time on a missing `DATABASE_URL` — this module never opens a connection
+ * as a side effect of being imported.
+ *
+ * Two backends:
+ *   - Production (Workers): `drizzle(env.DB, { schema })` from `drizzle-orm/d1`,
+ *     built per request from the D1 binding via {@link getD1Db}.
+ *   - Dev / test: `better-sqlite3` against a file or `:memory:` via {@link getDb}.
+ *
+ * Query and ingest code takes an injectable `database?` handle (see
+ * `lib/ingest/upsert.ts` `PersistDb`), so a route handler resolves the
+ * request-scoped D1 handle once and threads it down; only when no handle is
+ * passed do the lazy defaults below apply (dev/test convenience).
+ *
+ * `drizzle-orm/d1` is pure JS and safe to import in the Workers bundle. The
+ * dev-only `better-sqlite3` (a native CJS addon) is loaded through
+ * `createRequire` INSIDE {@link getDb}, so it is never pulled into the Workers
+ * bundle and importing `@/db` in production costs nothing.
+ */
 
-if (!connectionString) {
-  throw new Error("DATABASE_URL is not set. Copy .env.example to .env.local.");
+/** Union of the two concrete Drizzle handles this app runs against. */
+export type AppDatabase =
+  | DrizzleD1Database<typeof schema>
+  | BetterSQLite3Database<typeof schema>;
+
+/**
+ * Build a D1-backed Drizzle handle from a Worker `env.DB` binding. Call this in
+ * a route handler / scheduled handler where the request `env` is available.
+ * D1 enforces foreign keys itself; no PRAGMA is needed on the platform binding.
+ */
+export function getD1Db(d1: D1Database): DrizzleD1Database<typeof schema> {
+  return drizzleD1(d1, { schema });
 }
 
-const sql = neon(connectionString);
+// --- Dev / test: better-sqlite3 -----------------------------------------
 
-export const db = drizzle(sql, { schema });
+let devDb: BetterSQLite3Database<typeof schema> | undefined;
+
+/**
+ * A process-local better-sqlite3 handle for dev/test and any Node-side script.
+ * Lazily created once. The path comes from `DATABASE_PATH` (default
+ * `:memory:`), and `PRAGMA foreign_keys = ON` matches D1's FK enforcement so the
+ * cascades declared in the schema behave the same locally.
+ */
+export function getDb(): BetterSQLite3Database<typeof schema> {
+  if (devDb) return devDb;
+  const require = createRequire(import.meta.url);
+  const Database = require("better-sqlite3");
+  const { drizzle } = require("drizzle-orm/better-sqlite3");
+  const client = new Database(process.env.DATABASE_PATH ?? ":memory:");
+  client.pragma("foreign_keys = ON");
+  const created: BetterSQLite3Database<typeof schema> = drizzle(client, {
+    schema,
+  });
+  devDb = created;
+  return created;
+}
+
+/**
+ * Lazy default handle for dev/test callers that do not thread a request-scoped
+ * handle. Kept as a getter-backed proxy (NOT a module-level `const`) so importing
+ * `@/db` never opens a connection — the connection is created on first property
+ * access. Production route handlers should use {@link getD1Db}(env.DB) instead.
+ */
+export const db: BetterSQLite3Database<typeof schema> = new Proxy(
+  {} as BetterSQLite3Database<typeof schema>,
+  {
+    get(_target, prop, receiver) {
+      const real = getDb();
+      return Reflect.get(real as object, prop, receiver);
+    },
+  },
+);

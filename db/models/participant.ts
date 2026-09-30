@@ -1,11 +1,4 @@
-import {
-  boolean,
-  integer,
-  pgTable,
-  serial,
-  text,
-  unique,
-} from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { category } from "./competition";
 import { participantType, provenance } from "./enums";
 import { nation } from "./reference";
@@ -15,17 +8,17 @@ import { nation } from "./reference";
  * and pmg clubs both live here; `isClub` distinguishes them so a club is never
  * merged with a nation-team. The age band belongs to the category, not the team.
  */
-export const team = pgTable("team", {
-  id: serial("id").primaryKey(),
+export const team = sqliteTable("team", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   normalizedName: text("normalized_name").notNull(),
   nationId: integer("nation_id").references(() => nation.id),
-  isClub: boolean("is_club").default(false).notNull(),
+  isClub: integer("is_club", { mode: "boolean" }).default(false).notNull(),
 });
 
 /** A rider identity, resolved across events by `normalizedName`. */
-export const athlete = pgTable("athlete", {
-  id: serial("id").primaryKey(),
+export const athlete = sqliteTable("athlete", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   familyName: text("family_name").notNull(),
   givenName: text("given_name"),
   normalizedName: text("normalized_name").notNull().unique(),
@@ -33,8 +26,8 @@ export const athlete = pgTable("athlete", {
 });
 
 /** A horse/pony identity (pmg only in practice; mg never shows horses). */
-export const horse = pgTable("horse", {
-  id: serial("id").primaryKey(),
+export const horse = sqliteTable("horse", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   normalizedName: text("normalized_name").notNull().unique(),
 });
@@ -45,14 +38,14 @@ export const horse = pgTable("horse", {
  * (any type) is in `participant_member`. Native id (mg team_id) lives in
  * `source_ref`; scores join by `normalizedLabel` within the category.
  */
-export const participant = pgTable(
+export const participant = sqliteTable(
   "participant",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     categoryId: integer("category_id")
       .notNull()
       .references(() => category.id, { onDelete: "cascade" }),
-    type: participantType("type").notNull(),
+    type: text("type", { enum: participantType }).notNull(),
     label: text("label").notNull(),
     normalizedLabel: text("normalized_label").notNull(),
     teamId: integer("team_id").references(() => team.id),
@@ -70,10 +63,10 @@ export const participant = pgTable(
  * individual → 1 row, pair → 2, team → N; mg team/pair start at 0 rows until
  * `crowdsourced`. `provenance` lets the UI flag and moderation revert them.
  */
-export const participantMember = pgTable(
+export const participantMember = sqliteTable(
   "participant_member",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     participantId: integer("participant_id")
       .notNull()
       .references(() => participant.id, { onDelete: "cascade" }),
@@ -82,7 +75,9 @@ export const participantMember = pgTable(
       .references(() => athlete.id),
     horseId: integer("horse_id").references(() => horse.id),
     role: text("role"),
-    provenance: provenance("provenance").default("scraped").notNull(),
+    provenance: text("provenance", { enum: provenance })
+      .default("scraped")
+      .notNull(),
   },
   (t) => [unique("participant_member_uq").on(t.participantId, t.athleteId)],
 );

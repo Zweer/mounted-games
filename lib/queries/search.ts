@@ -1,4 +1,4 @@
-import { ilike } from "drizzle-orm";
+import { like } from "drizzle-orm";
 import { competition } from "@/db/models/competition";
 import { athlete, horse, team } from "@/db/models/participant";
 import type { PersistDb } from "@/lib/ingest/upsert";
@@ -54,28 +54,28 @@ export async function search(
       givenName: athlete.givenName,
     })
     .from(athlete)
-    .where(ilike(athlete.normalizedName, pattern))
+    .where(like(athlete.normalizedName, pattern))
     .limit(PER_GROUP_CAP);
 
   // Horses.
   const horses = await db
     .select({ id: horse.id, name: horse.name })
     .from(horse)
-    .where(ilike(horse.normalizedName, pattern))
+    .where(like(horse.normalizedName, pattern))
     .limit(PER_GROUP_CAP);
 
   // Teams.
   const teams = await db
     .select({ id: team.id, name: team.name, isClub: team.isClub })
     .from(team)
-    .where(ilike(team.normalizedName, pattern))
+    .where(like(team.normalizedName, pattern))
     .limit(PER_GROUP_CAP);
 
   // Competitions.
   const competitions = await db
     .select({ id: competition.id, name: competition.name })
     .from(competition)
-    .where(ilike(competition.normalizedName, pattern))
+    .where(like(competition.normalizedName, pattern))
     .limit(PER_GROUP_CAP);
 
   return {

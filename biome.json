@@ -13,6 +13,7 @@
       "!next-env.d.ts",
       "!.next",
       "!db/meta",
+      "!db/_postgres_retired",
       "!app/globals.css",
       "!**/*.sql",
       "!lib/scrapers/__fixtures__",

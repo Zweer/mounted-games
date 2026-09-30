@@ -1,4 +1,4 @@
-import { integer, pgTable, serial, text, unique } from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 import { sourceKind } from "./enums";
 
 /**
@@ -6,8 +6,8 @@ import { sourceKind } from "./enums";
  * modelled as first-class rows with their own codes — they compete as distinct
  * nations, so they are never merged into a `GB` parent.
  */
-export const nation = pgTable("nation", {
-  id: serial("id").primaryKey(),
+export const nation = sqliteTable("nation", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   /** ISO2 (`IT`, `FR`, ...) or a home-nation token (`england`, `scotland`, `wales`). */
   code: text("code").notNull().unique(),
   name: text("name").notNull(),
@@ -17,8 +17,8 @@ export const nation = pgTable("nation", {
  * Canonical game (standardized MG race). The join key for per-game stats.
  * Source/locale-specific spellings are resolved via `gameAlias`.
  */
-export const game = pgTable("game", {
-  id: serial("id").primaryKey(),
+export const game = sqliteTable("game", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   canonicalName: text("canonical_name").notNull(),
   normalizedName: text("normalized_name").notNull().unique(),
 });
@@ -28,14 +28,14 @@ export const game = pgTable("game", {
  * names are Italian (via `acfGiocoLabels`); the ingester resolves a raw header
  * to a `game_id` through this alias, creating game + alias on first sight.
  */
-export const gameAlias = pgTable(
+export const gameAlias = sqliteTable(
   "game_alias",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
     gameId: integer("game_id")
       .notNull()
       .references(() => game.id, { onDelete: "cascade" }),
-    source: sourceKind("source").notNull(),
+    source: text("source", { enum: sourceKind }).notNull(),
     rawName: text("raw_name").notNull(),
     normalizedName: text("normalized_name").notNull(),
   },
@@ -43,8 +43,8 @@ export const gameAlias = pgTable(
 );
 
 /** Competition venue. Sparse (mg venue metadata is thin); referenced nullably. */
-export const venue = pgTable("venue", {
-  id: serial("id").primaryKey(),
+export const venue = sqliteTable("venue", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   normalizedName: text("normalized_name").notNull().unique(),
   nationId: integer("nation_id").references(() => nation.id),
