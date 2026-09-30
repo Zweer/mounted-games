@@ -2,6 +2,7 @@ import type { Cheerio, CheerioAPI } from "cheerio";
 import * as cheerio from "cheerio";
 import type { AnyNode } from "domhandler";
 import { cleanDisplay, normalizeKey, parseScore } from "../normalize";
+import { getSecret } from "../runtime/workers-env";
 import { parseDateRange, parseItalianNumericDate } from "./dates";
 import { fetchHtml } from "./http";
 import { inferLevel } from "./level";
@@ -85,7 +86,7 @@ export const pmgLivescoreScraper: Scraper = {
     for (const cpt of cpts) {
       try {
         const json = await fetchHtml(
-          `${PMG_BASE}/wp-json/wp/v2/${cpt}?per_page=100&_fields=id`,
+          `${pmgBase()}/wp-json/wp/v2/${cpt}?per_page=100&_fields=id`,
           signal,
         );
         for (const row of JSON.parse(json) as Array<{ id?: number }>) {
@@ -97,7 +98,7 @@ export const pmgLivescoreScraper: Scraper = {
     }
     return [...ids].map((id) => ({
       kind: "classifica",
-      url: `${PMG_BASE}/live-classifica-generale/?post_id=${id}`,
+      url: `${pmgBase()}/live-classifica-generale/?post_id=${id}`,
     }));
   },
 
@@ -109,7 +110,7 @@ export const pmgLivescoreScraper: Scraper = {
     // normalized name against `title.rendered` across the three CPTs via
     // wp-json. Every matched post_id becomes a classifica entry target; the
     // poller discovers its live sub-phases later.
-    const home = await fetchHtml(`${PMG_BASE}/`, signal);
+    const home = await fetchHtml(`${pmgBase()}/`, signal);
     const live = parseInProgressCompetitions(home);
     if (live.length === 0) return [];
 
@@ -119,7 +120,7 @@ export const pmgLivescoreScraper: Scraper = {
     for (const cpt of cpts) {
       try {
         const json = await fetchHtml(
-          `${PMG_BASE}/wp-json/wp/v2/${cpt}?per_page=100&_fields=id,title`,
+          `${pmgBase()}/wp-json/wp/v2/${cpt}?per_page=100&_fields=id,title`,
           signal,
         );
         const rows = JSON.parse(json) as Array<{
@@ -148,7 +149,7 @@ export const pmgLivescoreScraper: Scraper = {
     return [...ids].map(([id, dates]) => {
       const target: DiscoveredTarget = {
         kind: "classifica",
-        url: `${PMG_BASE}/live-classifica-generale/?post_id=${id}`,
+        url: `${pmgBase()}/live-classifica-generale/?post_id=${id}`,
       };
       if (dates.startsOn) target.startsOn = dates.startsOn;
       if (dates.endsOn) target.endsOn = dates.endsOn;
@@ -195,9 +196,17 @@ export function parseInProgressCompetitions(
   return out;
 }
 
-const PMG_BASE = (
-  process.env.PMG_LIVESCORE_BASE_URL ?? "https://pmglivescore.altervista.org"
-).replace(/\/$/, "");
+/**
+ * Source base URL, resolved lazily per call. On Workers, env vars are not
+ * available at module-init (only within a request); reading through `getSecret`
+ * defers the lookup so it works both on Workers and under Node/dev (where it
+ * falls back to `process.env`, then the hardcoded default).
+ */
+function pmgBase(): string {
+  return (
+    getSecret("PMG_LIVESCORE_BASE_URL") ?? "https://pmglivescore.altervista.org"
+  ).replace(/\/$/, "");
+}
 
 /* -------------------------------------------------------------------------- */
 /* Target discovery (phase-view enumeration from the live nav bar)             */

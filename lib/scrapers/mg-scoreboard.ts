@@ -1,6 +1,7 @@
 import { type Cheerio, type CheerioAPI, load } from "cheerio";
 import type { AnyNode } from "domhandler";
 import { cleanDisplay, normalizeKey, parseScore } from "../normalize";
+import { getSecret } from "../runtime/workers-env";
 import { parseListDate, parseUpcomingDate } from "./dates";
 import { fetchHtml } from "./http";
 import { inferLevel } from "./level";
@@ -127,7 +128,7 @@ export const mgScoreboardScraper: Scraper = {
 
     try {
       const html = await fetchHtml(
-        `${MG_BASE}/index.php?seite=archiv`,
+        `${mgBase()}/index.php?seite=archiv`,
         signal,
         {
           Cookie: "language=en",
@@ -140,7 +141,7 @@ export const mgScoreboardScraper: Scraper = {
 
     for (const path of ["index.php?seite=upcoming", "index.php"]) {
       try {
-        const html = await fetchHtml(`${MG_BASE}/${path}`, signal, {
+        const html = await fetchHtml(`${mgBase()}/${path}`, signal, {
           Cookie: "language=en",
         });
         // Main panel: German-month heading + day badge (same shape as archive).
@@ -161,22 +162,30 @@ export const mgScoreboardScraper: Scraper = {
     // The events running now come straight from the index nav's "Current
     // competitions" dropdown (see docs/sources/mg-scoreboard.md). Each is seeded
     // as a Toplist entry target; the poller discovers its live sub-phases later.
-    const html = await fetchHtml(`${MG_BASE}/index.php`, signal, {
+    const html = await fetchHtml(`${mgBase()}/index.php`, signal, {
       Cookie: "language=en",
     });
     return parseCurrentEventIds(html).map((id) => toplistTarget(id));
   },
 };
 
-const MG_BASE = (
-  process.env.MG_SCOREBOARD_BASE_URL ?? "https://www.mg-scoreboard.de"
-).replace(/\/$/, "");
+/**
+ * Source base URL, resolved lazily per call. On Workers, env vars are not
+ * available at module-init (only within a request); reading through `getSecret`
+ * defers the lookup so it works both on Workers and under Node/dev (where it
+ * falls back to `process.env`, then the hardcoded default).
+ */
+function mgBase(): string {
+  return (
+    getSecret("MG_SCOREBOARD_BASE_URL") ?? "https://www.mg-scoreboard.de"
+  ).replace(/\/$/, "");
+}
 
 /** Toplist entry-target for an event id (the seed/live entry point). */
 function toplistTarget(id: string, startsOn?: string): DiscoveredTarget {
   const target: DiscoveredTarget = {
     kind: "toplist",
-    url: `${MG_BASE}/?seite=show_event&id=${id}&seite2=event_points_list_show`,
+    url: `${mgBase()}/?seite=show_event&id=${id}&seite2=event_points_list_show`,
   };
   if (startsOn) target.startsOn = startsOn;
   return target;

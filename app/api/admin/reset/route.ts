@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
+import { getSecret } from "@/lib/runtime/workers-env";
 
 // Destructive maintenance route — never statically optimized.
 export const dynamic = "force-dynamic";
@@ -43,7 +44,7 @@ const SCRAPED_TABLES = [
  * reset avoids leaving mis-grouped duplicates behind).
  */
 export async function POST(request: Request): Promise<Response> {
-  const secret = process.env.CRON_SECRET;
+  const secret = getSecret("CRON_SECRET");
   const authorization = request.headers.get("authorization");
   if (!secret || authorization !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });

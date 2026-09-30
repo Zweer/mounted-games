@@ -4,6 +4,8 @@ import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import { drizzle as drizzleD1 } from "drizzle-orm/d1";
 import * as schema from "@/db/schema";
+import type { PersistDb } from "@/lib/ingest/upsert";
+import { getEnv } from "@/lib/runtime/workers-env";
 
 /**
  * Dialect-aware, request-scoped database factory.
@@ -69,17 +71,43 @@ export function getDb(): BetterSQLite3Database<typeof schema> {
 }
 
 /**
- * Lazy default handle for dev/test callers that do not thread a request-scoped
- * handle. Kept as a getter-backed proxy (NOT a module-level `const`) so importing
- * `@/db` never opens a connection — the connection is created on first property
- * access. Production route handlers should use {@link getD1Db}(env.DB) instead.
+ * Resolve the database handle appropriate to the current runtime, per request.
+ *
+ * - On Cloudflare Workers (OpenNext), returns `getD1Db(env.DB)` built from the
+ *   request-scoped D1 binding exposed via OpenNext's `getCloudflareContext()`
+ *   (see `lib/runtime/workers-env.ts`). D1 has no module-level singleton; the
+ *   handle is cheap to build per call and D1 enforces FKs itself.
+ * - Under Node / dev / test (no D1 binding), returns the lazy `better-sqlite3`
+ *   handle from {@link getDb}.
+ *
+ * Route handlers, the scheduled handler, `auth.ts` and the DB-backed server
+ * components all resolve through this one accessor (directly, or via the `db`
+ * proxy below which delegates to it), so exactly one place decides the backend.
+ *
+ * Typed as {@link PersistDb} — the `BaseSQLiteDatabase<"async" | "sync">` union
+ * the codebase already uses for injectable handles — so one handle type covers
+ * both the async D1 client and the sync better-sqlite3 client with unified
+ * query-builder signatures (same reason `persistScrape`/the query fns use it).
  */
-export const db: BetterSQLite3Database<typeof schema> = new Proxy(
-  {} as BetterSQLite3Database<typeof schema>,
-  {
-    get(_target, prop, receiver) {
-      const real = getDb();
-      return Reflect.get(real as object, prop, receiver);
-    },
+export function getRequestDb(): PersistDb {
+  const workerEnv = getEnv();
+  if (workerEnv?.DB) {
+    return getD1Db(workerEnv.DB) as unknown as PersistDb;
+  }
+  return getDb() as unknown as PersistDb;
+}
+
+/**
+ * Lazy default handle for callers that do not thread a request-scoped handle
+ * (DB-backed server components, the injectable-`database?` query fns' fallback,
+ * and the ingest helpers). Kept as a getter-backed proxy (NOT a module-level
+ * `const`) so importing `@/db` never opens a connection — the backend is chosen
+ * on first property access via {@link getRequestDb}, which returns request-scoped
+ * D1 on Workers and better-sqlite3 under Node/test.
+ */
+export const db: PersistDb = new Proxy({} as PersistDb, {
+  get(_target, prop, receiver) {
+    const real = getRequestDb();
+    return Reflect.get(real as object, prop, receiver);
   },
-);
+});

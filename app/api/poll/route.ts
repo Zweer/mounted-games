@@ -6,6 +6,7 @@ import {
   runDispatcherTick,
   runPollTick,
 } from "@/lib/ingest/poll";
+import { getSecret } from "@/lib/runtime/workers-env";
 
 // The poller does per-request DB + network work; never statically optimized.
 export const dynamic = "force-dynamic";
@@ -25,7 +26,7 @@ const MODES: Set<PollMode> = new Set(["live", "archive"]);
  *  - `archive`: scrape 1 idle target (incremental historical backfill).
  */
 async function handle(request: Request): Promise<Response> {
-  const secret = process.env.CRON_SECRET;
+  const secret = getSecret("CRON_SECRET");
   const authorization = request.headers.get("authorization");
 
   if (!secret || authorization !== `Bearer ${secret}`) {
