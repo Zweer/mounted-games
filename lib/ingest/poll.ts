@@ -2,7 +2,11 @@ import { createHash } from "node:crypto";
 import { getScraper } from "@/lib/scrapers/registry";
 import { syncTargets } from "./discover";
 import { claimScheduledTask } from "./lease";
-import { hasLiveTargets, refreshLiveWindow } from "./live-window";
+import {
+  hasLiveTargets,
+  isLiveWindowRefreshDue,
+  refreshLiveWindow,
+} from "./live-window";
 import type { ScrapeTargetRow } from "./targets";
 import {
   claimTarget,
@@ -111,8 +115,16 @@ export async function runPollTick(
   const timeoutMs = options.timeoutMs ?? 6000;
   const budgetMs = options.budgetMs ?? 20_000;
 
-  // Refresh the live window periodically, not on every dispatcher invocation.
-  if (await claimScheduledTask("live-discovery", DISCOVERY_INTERVAL_MS)) {
+  // Refresh the live window periodically, not on every tick. The refresh is the
+  // authoritative, source-hitting, D1-writing recompute; the idle gate keeps it
+  // off the quiet path. On Workers the "is it due?" question is answered from KV
+  // (`poller:next-refresh`), so a not-yet-due idle tick issues ZERO D1 queries;
+  // `claimScheduledTask` (a D1 write) is only consulted under Node/test, where
+  // KV is absent and `isLiveWindowRefreshDue()` returns true (see live-window).
+  if (
+    (await isLiveWindowRefreshDue()) &&
+    (await claimScheduledTask("live-discovery", DISCOVERY_INTERVAL_MS))
+  ) {
     const refreshController = new AbortController();
     const refreshTimer = setTimeout(() => refreshController.abort(), timeoutMs);
     try {
