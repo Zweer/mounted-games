@@ -145,3 +145,8 @@ vite.config.ts.timestamp-*
 
 # Wrangler local state (Miniflare D1/KV, bundle temp) — never committed
 .wrangler/
+
+# Local Workers secrets for `wrangler dev` / OpenNext preview — never committed
+.dev.vars
+.dev.vars.*
+!.dev.vars.example

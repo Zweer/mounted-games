@@ -3,11 +3,15 @@
   //
   // Consumed by `opennextjs-cloudflare build/preview/deploy` (see package.json)
   // and by `npx wrangler dev` when previewing the built worker. OpenNext adapts
-  // the standard `next build` output into `.open-next/worker.js`, so — unlike the
-  // ViNext attempt — the Worker entrypoint IS set here as `main`.
+  // the standard `next build` output into `.open-next/worker.js`, which exports
+  // ONLY a `fetch` handler. Phase D adds a Cron Trigger, which needs a
+  // `scheduled` handler too, so `main` points at `custom-worker.ts` — a thin
+  // wrapper that re-exports OpenNext's fetch + Durable Objects and adds
+  // `scheduled` (see custom-worker.ts). The wrapper still imports the generated
+  // `.open-next/worker.js`, so `opennextjs-cloudflare build` runs unchanged.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "mounted-games",
-  "main": ".open-next/worker.js",
+  "main": "custom-worker.ts",
 
   // compatibility_date >= 2026-08-04 => nodejs_compat + nodejs_compat_v2 are the
   // default runtime, which is what lets cheerio's Node built-ins (buffer/stream)
@@ -56,5 +60,18 @@
       "binding": "POLLER_KV",
       "id": "local-poller-kv"
     }
-  ]
+  ],
+
+  // --- Cron Trigger (Phase D — D1) --------------------------------------
+  // Fire the scheduled() handler once a minute. The cadence matches the live
+  // poll interval (lib/ingest/targets.ts DEFAULT_LIVE_POLL_INTERVAL_MS =
+  // 60_000ms): during a live event we want a minute-fresh scoreboard. Off-season
+  // this minute tick is a KV read only (poller:is-live == "0"), NOT a D1 query
+  // (lib/ingest/live-window.ts idle gate) — that is the core cost fix, so a
+  // 1-minute cadence is cheap even year-round. The authoritative live-window
+  // recompute (source-hitting + D1) is throttled separately to every ~5 min via
+  // poller:next-refresh (LIVE_WINDOW_TTL_MS), not on every tick.
+  "triggers": {
+    "crons": ["* * * * *"]
+  }
 }
