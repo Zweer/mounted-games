@@ -2,7 +2,14 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    // Enables `app/global-not-found.tsx`: a full-document 404 for URLs that
+    // match no route at all (incl. invalid `[locale]` segments, where
+    // `[locale]/layout.tsx` throws `notFound()` before its `<html>/<body>`
+    // exists). Required flag per Next 16 docs
+    // (node_modules/next/dist/docs/.../file-conventions/not-found.md).
+    globalNotFound: true,
+  },
 };
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
