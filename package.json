@@ -15,7 +15,11 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "cf:build": "opennextjs-cloudflare build",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -26,7 +30,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.31.0",
-    "next": "16.3.0",
+    "next": "16.3.7",
     "next-intl": "^4.13.6",
     "next-themes": "^0.4.6",
     "react": "19.2.8",
@@ -38,9 +42,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.7",
-    "@cloudflare/workers-types": "^4.20250620.0",
+    "@cloudflare/workers-types": "^5.20260926.1",
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
+    "@opennextjs/cloudflare": "1.20.7",
     "@tailwindcss/postcss": "^4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^26",
@@ -51,7 +56,26 @@
     "lockfile-lint": "^5.0.0",
     "tailwindcss": "^4",
     "typescript": "^7",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "wrangler": "^4.144.0"
   },
-  "type": "module"
+  "overrides": {
+    "eciesjs": {
+      "@noble/ciphers": "1.3.0"
+    },
+    "@ecies/ciphers": {
+      "@noble/ciphers": "1.3.0"
+    }
+  },
+  "type": "module",
+  "allowScripts": {
+    "@swc/core@1.16.13": true,
+    "workerd@1.20260926.1": true,
+    "better-sqlite3@12.11.1": true,
+    "esbuild@0.25.4": true,
+    "esbuild@0.28.2": true,
+    "esbuild@0.28.1": true,
+    "esbuild@0.18.20": true,
+    "@parcel/watcher@2.6.0": true
+  }
 }

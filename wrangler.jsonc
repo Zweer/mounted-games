@@ -1,0 +1,60 @@
+{
+  // Cloudflare Workers configuration for the OpenNext runtime.
+  //
+  // Consumed by `opennextjs-cloudflare build/preview/deploy` (see package.json)
+  // and by `npx wrangler dev` when previewing the built worker. OpenNext adapts
+  // the standard `next build` output into `.open-next/worker.js`, so — unlike the
+  // ViNext attempt — the Worker entrypoint IS set here as `main`.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mounted-games",
+  "main": ".open-next/worker.js",
+
+  // compatibility_date >= 2026-08-04 => nodejs_compat + nodejs_compat_v2 are the
+  // default runtime, which is what lets cheerio's Node built-ins (buffer/stream)
+  // resolve on Workers (gate C.4 PASSED). The explicit flag keeps it
+  // unambiguous. See design C.4.
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // OpenNext serves Next.js static/client assets from the build output through
+  // this binding.
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  // OpenNext uses a self-service binding for its internal routing/revalidation.
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "mounted-games"
+    }
+  ],
+
+  // --- D1 (SQLite) -------------------------------------------------------
+  // The request-scoped D1 binding the route/scheduled handlers read as env.DB
+  // via OpenNext's getCloudflareContext() (see lib/runtime/workers-env.ts +
+  // db/index.ts getD1Db). `database_id` is a placeholder for local dev; a real
+  // id is filled in Phase D against the developer's Cloudflare account. Locally,
+  // `wrangler d1 migrations apply DB --local` seeds a Miniflare-backed SQLite
+  // from the Phase A baseline migration (db/0000_*.sql).
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mounted-games",
+      "database_id": "local-mounted-games",
+      "migrations_dir": "db"
+    }
+  ],
+
+  // --- KV (Phase D idle gate) -------------------------------------------
+  // Declared now so the binding type exists; the poller idle-gate keys
+  // (poller:is-live / poller:next-refresh) are wired in Phase D. `id` is a
+  // placeholder for local dev (Miniflare provisions a local namespace).
+  "kv_namespaces": [
+    {
+      "binding": "POLLER_KV",
+      "id": "local-poller-kv"
+    }
+  ]
+}

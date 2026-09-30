@@ -141,3 +141,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+.open-next/
+
+# Wrangler local state (Miniflare D1/KV, bundle temp) — never committed
+.wrangler/
