@@ -1,37 +1,12 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { PGlite } from "@electric-sql/pglite";
-import { drizzle } from "drizzle-orm/pglite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import * as schema from "@/db/schema";
 import { type PersistDb, persistScrape } from "@/lib/ingest/upsert";
 import type { NormalizedScrape } from "@/lib/scrapers/types";
+import { createTestDb } from "@/lib/test/sqlite-harness";
 import { getCompetition, listCompetitions } from "./competitions";
 import { getAthlete, getHorse, getNation, getTeam } from "./entities";
 import { getLiveCategories, getRecentResults } from "./home";
 import { search } from "./search";
-
-const MIGRATIONS_DIR = join(__dirname, "..", "..", "db");
-
-async function applySchema(client: PGlite): Promise<void> {
-  const files = [
-    "0000_clever_sage.sql",
-    "0001_shocking_marvel_apes.sql",
-    "0002_young_natasha_romanoff.sql",
-    "0003_striped_shen.sql",
-    "0004_smart_ingestion.sql",
-  ];
-  for (const file of files) {
-    const raw = readFileSync(join(MIGRATIONS_DIR, file), "utf-8");
-    const statements = raw
-      .split("--> statement-breakpoint")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-    for (const statement of statements) {
-      await client.exec(statement);
-    }
-  }
-}
 
 /** A pmg-style individual scrape with riders + horses for rich entity testing. */
 function buildIndividualScrape(): NormalizedScrape {
@@ -157,21 +132,19 @@ function buildTeamScrape(): NormalizedScrape {
   };
 }
 
-describe("Read layer — pglite integration", () => {
-  let client: PGlite;
+describe("Read layer — SQLite integration", () => {
   let db: PersistDb;
+  let close: () => void;
 
   beforeEach(async () => {
-    client = new PGlite();
-    await applySchema(client);
-    db = drizzle(client, { schema }) as unknown as PersistDb;
+    ({ db, close } = createTestDb());
     // Seed both scrapes for a rich test graph.
     await persistScrape(buildTeamScrape(), db);
     await persistScrape(buildIndividualScrape(), db);
   });
 
-  afterEach(async () => {
-    await client.close();
+  afterEach(() => {
+    close();
   });
 
   // -------------------------------------------------------------------------
