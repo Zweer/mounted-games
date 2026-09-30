@@ -483,3 +483,118 @@ about the two riders) for Pairs events**:
   strings, e.g. archive months, stay German regardless).
 - `TODO:` Determine how many sessions a non-U12 event has (session count is per-event;
   read it from the nav tabs, never hard-code 4).
+
+---
+
+## Re-verification 2026-09-30
+
+Re-verified against the live site ahead of the spec-04 parser rewrite (Phase B).
+**Method:** plain HTTP GET (no JS, no Playwright) of the archive, upcoming, and a live
+event/toplist page — i.e. exactly production's `fetch` + `cheerio` path. Everything
+below survives without JavaScript; **no JS-only content was encountered**. Focus is the
+spec-04 fields only. Prior baseline (discovery 2026-08-09/10) unless noted.
+
+Pages checked:
+- Archive: `https://www.mg-scoreboard.de/index.php?seite=archiv`
+- Upcoming: `https://www.mg-scoreboard.de/index.php?seite=upcoming`
+- Event/Toplist (Team, currently live): `?seite=show_event&id=4863&seite2=event_points_list_show`
+  ("World Team Championships 2026 - U18")
+
+### 1. mg DATES — **CONFIRMED (with one clarification the dev must not miss)**
+
+- **Event page carries NO date** — re-confirmed on id=4863: the toplist page renders
+  only the title, the tab bar, and the score tables. No date string anywhere. The
+  discovery-time threading premise (date lives on the LIST pages, carried forward on the
+  scrape target) still **holds**.
+- **Archive month panels** — **CONFIRMED**. Grouped into panels whose heading is a
+  **German** month name + full year, and this stays German even though the default UI is
+  English (`Cookie: language=en`). Headings observed this run (verbatim):
+  `September 2026`, `August 2026`, `Juli 2026`, `Juni 2026`, `Mai 2026`, `April 2026`,
+  `März 2026`, `Februar 2026`, `Januar 2026`, and older `Dezember/November/Oktober …`.
+  So the `DE_MONTHS` map is still required and must cover:
+  `Januar, Februar, März, April, Mai, Juni, Juli, August, September, Oktober, November,
+  Dezember`. Each event within a panel is an `a.list-group-item` with the day-of-month in
+  a leading `span.badge` (values seen: `05`, `03`, `19`, `26`, `12`, `04`, …) and the
+  `index.php?seite=show_event&id=<N>` link form. **All CONFIRMED unchanged.**
+- **`D. Mon YY` inline format — CONFIRMED, but ⚠️ CLARIFICATION on WHERE it appears.**
+  The English-abbrev `D. Mon YY` string (e.g. `3. Oct 26`, `Sep 26`) is emitted in the
+  **nav dropdowns** ("Next five events" under *Up coming competitions*, "Last five
+  competitions" under *Archive*) — NOT in the main list panels. The **main `?seite=upcoming`
+  panel uses the SAME structure as the archive**: German month + year headings
+  (`Oktober 2026`, plus junk-data panels like `Mai 3000`) with a day-badge per event, NOT
+  an inline `D. Mon YY`.
+  **Action for the dev:** the spec-04 design says "Upcoming: parse the inline `D. Mon YY`
+  (English abbrev month) on the link text." That matches the **nav-dropdown** links, not
+  the main upcoming panel. If `parseEventEntries` for upcoming scrapes the **main panel**
+  (`div.panel…` + `span.badge` + German heading), it should reuse the SAME
+  German-month + day-badge path as the archive, and `parseUpcomingDate("19. Aug 26")`
+  only applies if it is instead reading the nav-dropdown link text. Pick the source
+  deliberately; do not assume the main upcoming panel is inline-dated. (`19. Aug 26`-style
+  strings were NOT seen in the main upcoming panel this run — only in the nav dropdown.)
+
+### 2. mg TITLE / GROUPING (age band baked into title) — **CONFIRMED**
+
+The event title bakes in the age band and often the format word and a 4-digit year. Both
+**prefix** and **suffix** band placements occur, plus spaced bands (`U 12`, `U 18`) and
+`Reserve`. 12 real **current** titles captured verbatim from this run (archive/upcoming,
+Aug–Oct 2026) for the dev to validate the strip/grouping regex against:
+
+1. `IMGA European Team Championships 2026 - Under 12a`   (suffix, spaced "Under 12a", year in title)
+2. `IMGA European Individual Championships 2026 - Under 15` (suffix "Under 15", format word "Individual")
+3. `World Team Championships 2026 - U18`                  (suffix `U18`)
+4. `World Team Championships 2026 - Reserve Individuals`  (suffix `Reserve` + format word `Individuals`, no age band)
+5. `U 12 WPC 2026`                                        (**prefix** spaced `U 12`, year, WPC)
+6. `OPEN WPC 2026`                                        (**prefix** `OPEN`)
+7. `RLT Wittorfer Kibro's OK`                             (suffix `OK` = Offene Klasse; German RLT)
+8. `Inter-counties Championship 2026 U12`                 (suffix `U12`, no separator before band)
+9. `Intercounties Championships 2026 - Musketeers`        (suffix `Musketeers` band)
+10. `OÖM - ÖM - Individuals - Einsteiger`                 (format word `Individuals` mid-title, `Einsteiger` band)
+11. `2026 Southern Series Pairs - Green Pony`             (**prefix** 4-digit year, `Pairs` format word, `Green Pony` band)
+12. `AMGA Individual Championship Camden 25 & over`       (suffix `25 & over` band; `Individual` format word)
+
+Notes for the regex:
+- Age-band tokens seen: `U12/U15/U17/U18`, spaced `U 12`/`U 15`/`U 18`, `Under 12a`,
+  `Under 15s`, `Under 18s`, `OPEN`/`OK`, `Einsteiger`, `Musketeers`, `Reserve`,
+  `Green Pony`, `Novice`, `Intermediate`, `25 & over`, `Elite`, `Indice 1`, French club
+  bands (`Club Elite`, `Major`, `Cadet`, `Minime`, `Benjamin`, `Senior`, `Poussin`).
+- Format words seen: `Team(s)`, `Individual(s)`, `Pairs`, `Paires`/`PAIRES`, `Coppie`
+  (rare), `Squadre` (rare).
+- A **4-digit year** appears in the majority of titles (`2026`, `2025`, …) but NOT all
+  (e.g. `RLT Wittorfer Kibro's OK` has none) — hence the spec's fallback chain
+  (startsOn year → year-in-title → none) is the right call.
+- Edge cases still present: `Celtic Pairs Under 12 (Individual)` (a pairs series scored
+  as individuals) and junk/test panels (`Mai 3000`, `TEST TEST 01 06 26`, `wp`).
+
+### 4. LEVEL inference vocabulary — **CONFIRMED / enriched from live titles**
+
+Real title vocabulary observed this run, mapped to the spec-04 `inferLevel` tiers:
+
+- **international**: `IMGA`, `World Team/Individual Championships`, `WPC`, `WTC`
+  (`Supporter Cup WTC`), `European Team/Individual/Pairs Championships`, `Home
+  International`, `Nations Championship`, `Scandinavian Championships`, `Nordic Team
+  Championships`, `International of Ghlin`, `Royal Welsh - International`.
+- **national**: `Deutsche Einzelmeisterschaft`, `Deutsche Paarmeisterschaft`,
+  `Championnat de France`, `British Individuals/Pairs`, `England Championships`,
+  `Scottish Championships`, `Welsh Championships`, `Irish Team/Pairs Championships`,
+  `Swiss/Swiss Team Championship`, `Championat` (Austrian), `SM/NM` (Swedish/Norwegian
+  champs), `AMGA National`, `PCA National`. (National marker + championship word, per the
+  spec's two-part rule.)
+- **regional**: `RLT …` (German Ranglistenturnier — very common), `Intercounties`/
+  `Inter-counties`, `MGAWA`, `AMGA VIC`, `AMGANSW`, `MGA Scotland Winter League`,
+  `Midlands Series`, `Southern Series`, `Winter Series`, `4 Regioni`-style, `State
+  Championships`.
+- **club / weak**: `Friendly`, `Club`, `Club Elite`, `Starter`, `Development League`,
+  `Training`/`Träningsklasse`, `Trophy`, `Cup`, `Show`, `Snowbird`.
+
+### Verdict — mg-scoreboard.de: **parsers SAFE to rewrite as-designed**, with ONE caveat
+
+Selectors, German-month archive headings, day badges, title band-baking, and the
+"event page has no date" premise are all **unchanged** from the baseline. The only thing
+the dev must decide deliberately (not a drift, a design clarification): the `D. Mon YY`
+inline date lives in the **nav dropdowns**, while the **main upcoming panel is
+German-month + day-badge** like the archive — so upcoming date parsing should mirror the
+archive path unless the parser specifically reads the nav-dropdown links. No JS-only
+content; `fetch` + `cheerio` remains sufficient.
+
+Suggested commit:
+`docs(sources): :memo: re-verify mg-scoreboard spec-04 fields (2026-09-30) — dates/titles/level confirmed, upcoming-panel date-source clarified`
