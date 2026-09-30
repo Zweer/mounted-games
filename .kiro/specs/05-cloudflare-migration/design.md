@@ -148,6 +148,30 @@ plus a small `getEnv()` accessor (from the Worker context) replace the module-le
 `process.env` reads in the poll/seed/auth routes. `NEXT_PUBLIC_*` client vars are still
 build-time inlined.
 
+### C.4 cheerio-under-nodejs_compat decision gate
+
+The two scrapers (`mg-scoreboard.ts`, `pmglivescore.ts`) use **cheerio**, which pulls in
+Node built-ins (buffer/stream) and ships its own DOM. On Workers this needs
+`nodejs_compat`. Recent Cloudflare change (verified 2026-09-30): for
+`compatibility_date >= 2026-08-04`, Workers enables `nodejs_compat` + `nodejs_compat_v2`
+by default, and the runtime now supports every stable serverless Node API — so cheerio is
+**much more likely to run than a month ago**, but it is not proven for THIS bundle.
+
+Gate, run in `wrangler dev` during Phase C:
+- Load a captured source page through each scraper under Workers and diff the parsed
+  output against the Node/Vitest fixture result. **PASS** → keep cheerio, migration is
+  mechanical.
+- **FAIL** (import error, bundle-size limit, or CPU-time blowup on a live-event page)
+  → rewrite the two scrapers' **DOM-extraction layer only** using the native
+  **`HTMLRewriter`** (streaming, zero-bundle, jQuery-like), reusing the reverse-eng docs
+  and fixtures.
+
+**This is why Phase B keeps parsing logic library-agnostic** (see Phase B framing): date
+parsing, title strip/grouping, level inference and the cents cast live in pure helpers
+(`lib/ingest/dates.ts`, `level.ts`, the grouping fn) that take already-extracted strings,
+NOT cheerio nodes. If the gate forces HTMLRewriter, only the thin extraction layer is
+rewritten; every spec-04 fix and its tests are reused unchanged.
+
 ---
 
 ## Phase D — Scheduler, idle gate, deploy, clean seed (R5, R6)

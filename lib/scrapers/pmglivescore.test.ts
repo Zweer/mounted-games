@@ -151,6 +151,39 @@ describe("pmgLivescoreScraper.parse — finale", () => {
   });
 });
 
+describe("pmgLivescoreScraper.parse — competition dates (R1) + level (R3)", () => {
+  it("extracts startsOn/endsOn from the .pmg-competition-dates header and infers national level", () => {
+    // Arrange — a competizione-style page carrying the capitalized-month header.
+    const html = load("coppie-competizione-dated");
+    // Act
+    const scrape = pmgLivescoreScraper.parse(
+      html,
+      ctx("competizione", "classifica", 47264),
+    );
+    // Assert — R1: header "TORTONA • 21 Maggio 2026 - 24 Maggio 2026" → ISO range.
+    expect(scrape.competition.startsOn).toBe("2026-05-21");
+    expect(scrape.competition.endsOn).toBe("2026-05-24");
+    // R3: CAMPIONATI ITALIANI marker → national.
+    expect(scrape.competition.level).toBe("national");
+  });
+
+  it("leaves dates unset on a live-* page with no inline date (threaded from discovery instead)", () => {
+    // Arrange — the classifica page carries only ACF title/category/modality.
+    const html = load("coppie-classifica");
+    // Act
+    const scrape = pmgLivescoreScraper.parse(
+      html,
+      ctx("live-classifica-generale", "classifica", 47264),
+    );
+    // Assert — no inline date on this view; startsOn/endsOn stay undefined so
+    // the DiscoveredTarget date (home-card .gara-date) fills them downstream.
+    expect(scrape.competition.startsOn).toBeUndefined();
+    expect(scrape.competition.endsOn).toBeUndefined();
+    // Level is still inferred from the title (CAMPIONATI ITALIANI → national).
+    expect(scrape.competition.level).toBe("national");
+  });
+});
+
 describe("pmgLivescoreScraper.parse — dispatch guard", () => {
   it("throws on an unsupported ctx.kind", () => {
     // Arrange

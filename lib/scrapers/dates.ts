@@ -131,9 +131,13 @@ export function parseUpcomingDate(text: string): string | null {
 }
 
 /**
- * A single Italian/EU text date: `20 Giugno 2026` → `2026-06-20`.
+ * A single Italian month-name text date: `21 Maggio 2026` → `2026-05-21`.
+ * Pure over an already-extracted string (Phase C: extraction may move from
+ * cheerio to HTMLRewriter, this logic does not). Month names are matched via
+ * the shared EN/DE/IT table, so it also accepts the mixed-locale mg strings.
+ * Returns `null` on anything unrecognized (dates degrade gracefully).
  */
-export function parseTextDate(text: string): string | null {
+export function parseItalianMonthDate(text: string): string | null {
   const m = text.trim().match(/(\d{1,2})\s+(\p{L}+)\.?\s+(\d{4})/u);
   if (!m) return null;
   const month = monthNumber(m[2]);
@@ -142,7 +146,30 @@ export function parseTextDate(text: string): string | null {
 }
 
 /**
- * pmg card date, possibly a range: `20 Giugno 2026 - 21 Giugno 2026` →
+ * A single Italian numeric date: `21/06/2026` → `2026-06-21` (the `DD/MM/YYYY`
+ * form on pmg's `live-info-gara` `Inizio`/`Fine` fields). Also tolerates `-`
+ * or `.` separators and a 2-digit year (treated as 20xx). Pure over an
+ * already-extracted string. Returns `null` on anything unrecognized.
+ */
+export function parseItalianNumericDate(text: string): string | null {
+  const m = text.trim().match(/(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})/);
+  if (!m) return null;
+  return toIso(Number(m[3]), Number(m[2]), Number(m[1]));
+}
+
+/**
+ * A single Italian/EU text date: `20 Giugno 2026` → `2026-06-20`. Retained name
+ * for existing callers; delegates to {@link parseItalianMonthDate}.
+ */
+export function parseTextDate(text: string): string | null {
+  return parseItalianMonthDate(text);
+}
+
+/**
+ * pmg card / header date, possibly a range, in EITHER the capitalized
+ * Italian-month form (`20 Giugno 2026 - 21 Giugno 2026`, home `.gara-date` and
+ * the `.pmg-competition-dates` header) OR the numeric `DD/MM/YYYY` form
+ * (`live-info-gara` `Inizio` - `Fine`) →
  * `{ startsOn: "2026-06-20", endsOn: "2026-06-21" }`. A single date yields only
  * `startsOn`. Unparseable input yields an empty object.
  */
@@ -151,9 +178,10 @@ export function parseDateRange(text: string): {
   endsOn?: string;
 } {
   const parts = text.split(/\s[-–—]\s/).map((p) => p.trim());
-  const startsOn = parseTextDate(parts[0] ?? "") ?? undefined;
-  const endsOn =
-    parts.length > 1 ? (parseTextDate(parts[1]) ?? undefined) : undefined;
+  const parseOne = (s: string): string | undefined =>
+    parseItalianMonthDate(s) ?? parseItalianNumericDate(s) ?? undefined;
+  const startsOn = parseOne(parts[0] ?? "");
+  const endsOn = parts.length > 1 ? parseOne(parts[1]) : undefined;
   const out: { startsOn?: string; endsOn?: string } = {};
   if (startsOn) out.startsOn = startsOn;
   if (endsOn) out.endsOn = endsOn;
