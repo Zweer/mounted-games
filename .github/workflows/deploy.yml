@@ -1,0 +1,62 @@
+name: Deploy (Cloudflare)
+
+# Fires when a GitHub Release is published — i.e. when the Release Please PR is
+# merged and a vX.Y.Z tag is cut. It re-runs the gate as a safety belt, then
+# builds the OpenNext bundle and deploys to Cloudflare Workers.
+#
+# It does NOT run on every push to main: deploys happen per release, giving
+# explicit versioning + CHANGELOG + one deploy per release.
+#
+# Required repo secrets (Settings -> Secrets and variables -> Actions):
+#   CLOUDFLARE_API_TOKEN   — token with Workers Scripts:Edit, D1:Edit, Workers KV:Edit
+#   CLOUDFLARE_ACCOUNT_ID  — your Cloudflare account id
+# Worker RUNTIME secrets (CRON_SECRET, BETTER_AUTH_SECRET, *_BASE_URL) stay as
+# `wrangler secret put ...` on the account — they are NOT set here.
+
+on:
+  release:
+    types: [published]
+  # Manual re-deploy of the current main, e.g. after rotating a runtime secret.
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-cloudflare
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Verify before deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+  deploy:
+    name: Build and deploy to Cloudflare
+    needs: gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      # `npm run deploy` = opennextjs-cloudflare build && opennextjs-cloudflare deploy.
+      # The OpenNext build needs @swc/core (allowScripts already permits it).
+      - name: Deploy
+        run: npm run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
