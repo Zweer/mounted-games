@@ -1,12 +1,29 @@
 import { describe, expect, it } from "vitest";
 import {
   parseDateRange,
+  parseGermanListDate,
   parseItalianMonthDate,
   parseItalianNumericDate,
   parseListDate,
   parseTextDate,
   parseUpcomingDate,
 } from "./dates";
+
+describe("parseGermanListDate — (month, day, year) archive/upcoming panel shape", () => {
+  it("parses a German month name + separate day + year", () => {
+    expect(parseGermanListDate("Oktober", "03", "2026")).toBe("2026-10-03");
+    expect(parseGermanListDate("März", 7, 2026)).toBe("2026-03-07");
+  });
+
+  it("also accepts an English month name (archive headings can be either)", () => {
+    expect(parseGermanListDate("August", "19", "2026")).toBe("2026-08-19");
+  });
+
+  it("returns null for an unknown month or out-of-range day", () => {
+    expect(parseGermanListDate("Nonemonth", "03", "2026")).toBeNull();
+    expect(parseGermanListDate("August", "99", "2026")).toBeNull();
+  });
+});
 
 describe("parseListDate — mg archive month panel + day badge", () => {
   it("parses an English month heading", () => {

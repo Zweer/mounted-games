@@ -119,6 +119,22 @@ export function parseListDate(
 }
 
 /**
+ * mg archive/upcoming month panels, in the design's explicit
+ * `(monthName, day, year)` shape: a GERMAN (or English) month name — the
+ * headings stay German under `language=en` — a day-of-month, and the panel's
+ * 4-digit year, → ISO `YYYY-MM-DD`. Thin wrapper over {@link parseListDate}
+ * (which takes the `"<month> <year>"` heading verbatim), provided so callers
+ * that have the three parts separately (spec 04 R1) do not have to re-concatenate.
+ */
+export function parseGermanListDate(
+  month: string,
+  day: string | number,
+  year: string | number,
+): string | null {
+  return parseListDate(`${month.trim()} ${year}`, day);
+}
+
+/**
  * mg upcoming list inline date: `19. Aug 26` → `2026-08-19` (2-digit year is
  * treated as 20xx).
  */
