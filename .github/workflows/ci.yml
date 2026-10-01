@@ -1,16 +1,16 @@
 name: CI
 
-# Verification gate. Runs on every PR and on pushes to main so the required
-# status checks (lint, typecheck, test) can block a merge. This is CI only —
-# deployment lives in deploy.yml and fires on a published release.
+# Verification gate for pull requests. With `main` protected and this workflow
+# set as a required status check, a PR cannot merge unless lint, typecheck and
+# tests pass. It does NOT run on push to main: code reaching main is already
+# green (it got there only via a passing PR), so re-running here would be wasted
+# work. Deployment lives in deploy.yml and fires on a published release.
 
 on:
   pull_request:
-  push:
-    branches: [main]
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

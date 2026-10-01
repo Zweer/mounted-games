@@ -1,11 +1,12 @@
 name: Deploy (Cloudflare)
 
 # Fires when a GitHub Release is published — i.e. when the Release Please PR is
-# merged and a vX.Y.Z tag is cut. It re-runs the gate as a safety belt, then
-# builds the OpenNext bundle and deploys to Cloudflare Workers.
+# merged and a vX.Y.Z tag is cut. The checkout resolves to that release's tag,
+# so it deploys exactly the released commit, not whatever HEAD of main is now.
 #
-# It does NOT run on every push to main: deploys happen per release, giving
-# explicit versioning + CHANGELOG + one deploy per release.
+# No test gate here: `main` is protected and CI (ci.yml) is a required check on
+# every PR, so the released commit is already verified. Re-testing an identical
+# tree would only add latency.
 #
 # Required repo secrets (Settings -> Secrets and variables -> Actions):
 #   CLOUDFLARE_API_TOKEN   — token with Workers Scripts:Edit, D1:Edit, Workers KV:Edit
@@ -16,7 +17,8 @@ name: Deploy (Cloudflare)
 on:
   release:
     types: [published]
-  # Manual re-deploy of the current main, e.g. after rotating a runtime secret.
+  # Manual re-deploy of the current default branch, e.g. after rotating a
+  # runtime secret.
   workflow_dispatch:
 
 concurrency:
@@ -27,23 +29,8 @@ permissions:
   contents: read
 
 jobs:
-  gate:
-    name: Verify before deploy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
-
   deploy:
     name: Build and deploy to Cloudflare
-    needs: gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
