@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.1](https://github.com/Zweer/mounted-games/compare/v0.2.0...v0.2.1) (2026-10-01)
+
+
+### Continuous Integration
+
+* **deploy:** :construction_worker: share Cloudflare deploy via a reusable workflow ([c73c674](https://github.com/Zweer/mounted-games/commit/c73c674a6f1b225de8b426d0e3198d96d3d6d1dd))
+* **deploy:** share Cloudflare deploy via a reusable workflow ([7d9369a](https://github.com/Zweer/mounted-games/commit/7d9369ab4e971071d7411a93e19b1cfd82174ed5))
+* **deps:** :arrow_up: bump GitHub Actions to latest majors ([079295d](https://github.com/Zweer/mounted-games/commit/079295ddb8a0bcad046fd8b2f2a6cab492c30592))
+* **deps:** bump GitHub Actions to latest majors ([83f25b3](https://github.com/Zweer/mounted-games/commit/83f25b30388c23066461b0fa704f1e3f59926a98))
+
 ## [0.2.0](https://github.com/Zweer/mounted-games/compare/v0.1.0...v0.2.0) (2026-10-01)
 
 
