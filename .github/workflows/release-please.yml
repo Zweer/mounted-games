@@ -1,0 +1,25 @@
+name: Release Please
+
+# Reads conventional commits landed on main and maintains a "release PR" that
+# bumps the version and updates CHANGELOG.md. Merging that release PR creates a
+# git tag (vX.Y.Z) and a GitHub Release — which is what triggers deploy.yml.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Release Please
+        uses: googleapis/release-please-action@v4
+        with:
+          # Uses release-please-config.json + .release-please-manifest.json
+          # at the repo root. GITHUB_TOKEN is the default Actions token.
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { seedAll } from "@/lib/ingest/seed";
+import { getSecret } from "@/lib/runtime/workers-env";
 
 // Crawls external list pages + wp-json; never statically optimized.
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export const maxDuration = 60;
  * competition window; the default seeds them idle for the archive).
  */
 export async function POST(request: Request): Promise<Response> {
-  const secret = process.env.CRON_SECRET;
+  const secret = getSecret("CRON_SECRET");
   const authorization = request.headers.get("authorization");
   if (!secret || authorization !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });

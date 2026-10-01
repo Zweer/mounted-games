@@ -1,6 +1,6 @@
 import type { ExtractTablesWithRelations } from "drizzle-orm";
 import { and, eq, isNull, sql } from "drizzle-orm";
-import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
+import type { BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import type * as schema from "@/db/schema";
 import {
   athlete,
@@ -31,20 +31,23 @@ import type {
 } from "@/lib/scrapers/types";
 
 /**
- * Any Drizzle Postgres handle bound to our schema. Broad enough to accept both
- * the production `neon-http` client (`@/db`) and a test-only pglite client
- * (`drizzle-orm/pglite`), so `persistScrape` can be exercised against an
- * embedded Postgres with no external database. See `upsert.test.ts`.
+ * Any Drizzle SQLite handle bound to our schema. Broad enough to accept both the
+ * production D1 client (`drizzle-orm/d1`, async) and the dev/test better-sqlite3
+ * client (`drizzle-orm/better-sqlite3`, sync), so `persistScrape` can be
+ * exercised against an in-memory SQLite with no external database. The
+ * `"async" | "sync"` run-result type parameter is what lets one type cover both.
+ * See `upsert.test.ts`.
  */
-export type PersistDb = PgDatabase<
-  PgQueryResultHKT,
+export type PersistDb = BaseSQLiteDatabase<
+  "async" | "sync",
+  unknown,
   typeof schema,
   ExtractTablesWithRelations<typeof schema>
 >;
 
 /**
- * Per-scrape identity caches. neon-http has no interactive transaction and each
- * statement is its own HTTP round-trip, so the same nation/game/athlete/phase
+ * Per-scrape identity caches. Cloudflare D1 has no interactive transaction and
+ * each statement is its own round-trip, so the same nation/game/athlete/phase
  * resolved once per row would multiply round-trips several-fold. We memoize the
  * `Promise<id>` (not the id) so concurrent callers awaiting the same key share a
  * single in-flight resolve — this both deduplicates the work AND removes the
@@ -86,9 +89,14 @@ function memoize(
   return pending;
 }
 
-/** Numeric columns are string-typed in Drizzle; format numbers deterministically. */
-function num(value: number): string {
-  return value.toString();
+/**
+ * Convert a decimal score to integer cents for storage (48.50 → 4850). The read
+ * layer divides by 100 (`toNumber` in `lib/queries/standings.ts`); storing cents
+ * keeps SQLite scores exact and makes rank/tie comparisons integer-exact. This
+ * is the single write-side conversion point (A8).
+ */
+function toCents(value: number): number {
+  return Math.round(value * 100);
 }
 
 /**
@@ -101,7 +109,7 @@ function memberDisplayName(member: NormalizedMember): string {
 
 // --- get-or-create helpers ------------------------------------------------
 //
-// The production driver is neon-http, which does NOT support interactive
+// The production driver is Cloudflare D1, which does NOT support interactive
 // `db.transaction()`. Every step below is therefore an idempotent upsert keyed
 // on a unique constraint (or a select-then-insert where the schema only has a
 // non-unique index), so a re-run of the same scrape converges to the same rows
@@ -539,8 +547,9 @@ async function upsertResult(
     .limit(1);
 
   const values = {
-    pointsTotal: num(r.pointsTotal),
-    penaltyPoints: r.penaltyPoints != null ? num(r.penaltyPoints) : null,
+    pointsTotalCents: toCents(r.pointsTotal),
+    penaltyPointsCents:
+      r.penaltyPoints != null ? toCents(r.penaltyPoints) : null,
     rank: r.rank ?? null,
     isTie: r.isTie ?? false,
   };
@@ -572,12 +581,12 @@ async function upsertGameResults(
         .values({
           resultId,
           gameId,
-          points: num(gs.points),
+          pointsCents: toCents(gs.points),
           ordinal: gs.ordinal,
         })
         .onConflictDoUpdate({
           target: [gameResult.resultId, gameResult.gameId],
-          set: { points: num(gs.points), ordinal: gs.ordinal },
+          set: { pointsCents: toCents(gs.points), ordinal: gs.ordinal },
         });
     }),
   );
@@ -596,12 +605,12 @@ async function upsertGameResults(
  *   4. result (by participant + phase + heat) + game_result (by result + game),
  *      resolving game via game_alias (by source + normalized name).
  *
- * The neon-http driver does NOT support interactive `db.transaction()`, so this
+ * Cloudflare D1 does NOT support interactive `db.transaction()`, so this
  * is a sequence of idempotent upserts keyed on the schema's unique constraints
  * (with select-then-insert where only a non-unique index exists). Re-running the
  * same scrape converges to the same rows.
  *
- * Performance: because each statement is a separate neon-http round-trip, we
+ * Performance: because each statement is a separate D1 round-trip, we
  * (a) memoize every identity resolve per scrape (`ResolveCaches`) so a shared
  * nation/game/athlete/phase is fetched once, and (b) run independent work
  * concurrently (participants, roster members, results, per-game rows). The two
@@ -610,9 +619,9 @@ async function upsertGameResults(
  * create duplicates. Ordering that IS required is preserved: competition →
  * category → participants → results run in sequence.
  *
- * `database` is injectable so the whole pipeline can run against an embedded
- * Postgres (pglite) in tests; it defaults to the shared neon-http client, which
- * is loaded lazily so importing this module never requires a live DATABASE_URL.
+ * `database` is injectable so the whole pipeline can run against an in-memory
+ * SQLite (better-sqlite3) in tests; it defaults to the shared handle from `@/db`
+ * (loaded lazily so importing this module never opens a connection).
  */
 export async function persistScrape(
   scrape: NormalizedScrape,

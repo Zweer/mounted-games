@@ -1,11 +1,5 @@
-import {
-  integer,
-  jsonb,
-  pgTable,
-  serial,
-  text,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { user } from "./auth";
 import { contributionStatus, contributionTarget } from "./enums";
 
@@ -15,18 +9,22 @@ import { contributionStatus, contributionTarget } from "./enums";
  * 'crowdsourced'` — used to fill mg's opaque team/pair rosters and horses, and to
  * merge misresolved name-based identities.
  */
-export const contribution = pgTable("contribution", {
-  id: serial("id").primaryKey(),
+export const contribution = sqliteTable("contribution", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  target: contributionTarget("target").notNull(),
+  target: text("target", { enum: contributionTarget }).notNull(),
   /** Existing row being edited/merged (null when proposing a new row). */
   targetId: integer("target_id"),
   /** Proposed member/athlete/horse or merge pair, shape depends on `target`. */
-  payload: jsonb("payload").notNull(),
-  status: contributionStatus("status").default("pending").notNull(),
+  payload: text("payload", { mode: "json" }).notNull(),
+  status: text("status", { enum: contributionStatus })
+    .default("pending")
+    .notNull(),
   reviewedBy: text("reviewed_by").references(() => user.id),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  reviewedAt: timestamp("reviewed_at"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .default(sql`(unixepoch())`)
+    .notNull(),
+  reviewedAt: integer("reviewed_at", { mode: "timestamp" }),
 });

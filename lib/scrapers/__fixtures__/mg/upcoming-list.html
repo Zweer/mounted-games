@@ -1,0 +1,70 @@
+<!doctype html>
+<!--
+  Faithful-to-structure fixture for `?seite=upcoming`, built from the
+  2026-09-30 re-verification of mg-scoreboard.md. Two date sources coexist:
+    1. the MAIN list = Bootstrap month panels whose heading is a GERMAN month
+       name + full year (stays German under `language=en`), each event an
+       `a.list-group-item` with a leading `span.badge` day-of-month and the
+       `index.php?seite=show_event&id=<N>` link form — SAME shape as the archive;
+    2. the NAV DROPDOWNS ("Up coming competitions" / "Archive") whose links carry
+       the inline English-abbrev `D. Mon YY` string.
+  The main panel does NOT carry the inline `D. Mon YY`; the dropdown does.
+-->
+<html lang="en">
+  <head><title>MGS Upcoming</title></head>
+  <body>
+    <nav class="navbar">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+          <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown">Up coming competitions <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li class="dropdown-header">Next five events</li>
+            <li><a href="?seite=show_event&id=5001"><img src="img\country_flags\_england.png"> World Team Championships 2026 - U18 - 3. Oct 26</a></li>
+            <li><a href="?seite=show_event&id=5002"><img src="img\country_flags\FR.png"> U 12 WPC 2026 - 19. Aug 26</a></li>
+            <li><a class="See-all" href="index.php?seite=upcoming">See all upcoming</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="container">
+      <div class="panel panel-default">
+        <div class="panel-heading">Oktober 2026</div>
+        <div class="panel-body">
+          <div class="list-group">
+            <a class="list-group-item" href="index.php?seite=show_event&id=5001">
+              <img src="img\country_flags\_england.png" height="20px"><span class="badge">03</span> World Team Championships 2026 - U18
+            </a>
+            <a class="list-group-item" href="index.php?seite=show_event&id=5003">
+              <img src="img\country_flags\DE.png" height="20px"><span class="badge">12</span> RLT Wittorfer Kibro's OK
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">August 2026</div>
+        <div class="panel-body">
+          <div class="list-group">
+            <a class="list-group-item" href="index.php?seite=show_event&id=5002">
+              <img src="img\country_flags\FR.png" height="20px"><span class="badge">19</span> U 12 WPC 2026
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Junk/test panel seen live (`Mai 3000`): must degrade to a dateless id,
+           never throw and never fabricate a date. -->
+      <div class="panel panel-default">
+        <div class="panel-heading">Mai 3000</div>
+        <div class="panel-body">
+          <div class="list-group">
+            <a class="list-group-item" href="index.php?seite=show_event&id=5099">
+              <span class="badge">01</span> TEST TEST 01 06 26
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

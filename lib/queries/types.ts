@@ -4,7 +4,7 @@ import type { CompetitionFormat, PhaseKind } from "@/lib/scrapers/types";
  * The shared read-model for a category's live/archive standings. Returned by
  * `getCategoryStandings`, served verbatim as JSON by `GET /api/live/[categoryId]`,
  * and consumed by the Live scoreboard UI. Numeric scores are already `number`
- * (cast from Drizzle `numeric` at the query boundary).
+ * (integer cents divided by 100 at the query boundary — see `toNumber`).
  */
 
 export interface StandingsNation {

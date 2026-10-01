@@ -1,7 +1,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { mgScoreboardScraper } from "./mg-scoreboard";
+import {
+  mgScoreboardScraper,
+  parseArchiveEntries,
+  parseUpcomingEntries,
+} from "./mg-scoreboard";
 import type { ScrapeContext } from "./types";
 
 const FIX = join(import.meta.dirname, "__fixtures__", "mg");
@@ -242,5 +246,50 @@ describe("mg-scoreboard discoverTargets", () => {
     expect(
       discover("team-toplist-4795.html", { url: BASE, kind: "toplist" }),
     ).toEqual([]);
+  });
+});
+
+/**
+ * R1 date threading: the event page has no date, so the LIST parsers must
+ * capture `startsOn` per event id and carry it onto the discovered target. The
+ * 2026-09-30 re-verification clarified that the main `?seite=upcoming` panel
+ * uses the archive's German-month + day-badge shape, while the inline
+ * `D. Mon YY` is only in the nav dropdowns — so both parsers run over the
+ * upcoming page and the archive path is what dates a main-panel event.
+ */
+describe("mg-scoreboard list parsers — date threading (R1)", () => {
+  const upcoming = read("upcoming-list.html");
+
+  it("archive-path parser dates the German-month main panel (heading + badge)", () => {
+    const byId = new Map(
+      parseArchiveEntries(upcoming).map((e) => [e.id, e.startsOn]),
+    );
+    // German month heading (Oktober/August) + day badge → ISO.
+    expect(byId.get("5001")).toBe("2026-10-03");
+    expect(byId.get("5003")).toBe("2026-10-12");
+    expect(byId.get("5002")).toBe("2026-08-19");
+  });
+
+  it("upcoming-path parser dates ONLY the nav-dropdown inline `D. Mon YY` links", () => {
+    const byId = new Map(
+      parseUpcomingEntries(upcoming).map((e) => [e.id, e.startsOn]),
+    );
+    // Dropdown carries 5001 + 5002 inline; 5003 lives only in the main panel.
+    expect(byId.get("5001")).toBe("2026-10-03");
+    expect(byId.get("5002")).toBe("2026-08-19");
+    expect(byId.get("5003")).toBeUndefined();
+  });
+
+  it("main-panel-only event (5003) is dated by the archive path, not the dropdown", () => {
+    // The caveat's whole point: without running the archive path over the
+    // upcoming page, 5003 would be seeded dateless.
+    const archiveDate = new Map(
+      parseArchiveEntries(upcoming).map((e) => [e.id, e.startsOn]),
+    ).get("5003");
+    const dropdownDate = new Map(
+      parseUpcomingEntries(upcoming).map((e) => [e.id, e.startsOn]),
+    ).get("5003");
+    expect(archiveDate).toBe("2026-10-12");
+    expect(dropdownDate).toBeUndefined();
   });
 });

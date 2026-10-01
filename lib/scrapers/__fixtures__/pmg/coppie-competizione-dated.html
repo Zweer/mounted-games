@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+  Minimal fixture for the pmg competizione/header date path.
+  Captured/normalized from the re-verified real structure documented in
+  docs/sources/pmglivescore.md (§ "Re-verification 2026-09-30 › 3. pmg DATES"):
+  the competition-page header renders as
+    `TORTONA • 21 Maggio 2026 - 24 Maggio 2026`  in `.pmg-competition-dates`,
+  capitalized-Italian-month `D Mese YYYY` form, range joined by " - ",
+  venue prefixed and separated by "•". The ACF read-only fields
+  (fea_post_title / categoria / modalita) are the same as every live-* view.
+  Trimmed to the elements the pmg parser reads — see pmglivescore.test.ts.
+-->
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <title>CAMPIONATI ITALIANI MG A COPPIE MASCHERONI</title>
+  </head>
+  <body>
+    <div class="entry-content">
+      <div class="pmg-competition-header">
+        <h1 class="pmg-competition-title">
+          CAMPIONATI ITALIANI MG A COPPIE MASCHERONI
+        </h1>
+        <div class="pmg-competition-dates">
+          TORTONA • 21 Maggio 2026 - 24 Maggio 2026
+        </div>
+      </div>
+
+      <div class="frontend-form frontend-form-read-only">
+        <div class="acf-fields acf-form-fields -top">
+          <div class="acf-field acf-field-text" data-name="fea_post_title" data-type="text">
+            <div class="acf-label"><label>Gara</label></div>
+            <div class="acf-input">
+              <div class="acf-input-wrap">
+                <span class="read-only-value">CAMPIONATI ITALIANI MG A COPPIE MASCHERONI</span>
+              </div>
+            </div>
+          </div>
+          <div class="acf-field acf-field-text" data-name="categoria" data-type="text">
+            <div class="acf-label"><label>Categoria</label></div>
+            <div class="acf-input">
+              <div class="acf-input-wrap">
+                <span class="read-only-value">OPEN PRO</span>
+              </div>
+            </div>
+          </div>
+          <div class="acf-field acf-field-text" data-name="modalita" data-type="text">
+            <div class="acf-label"><label>Modalità</label></div>
+            <div class="acf-input">
+              <div class="acf-input-wrap">
+                <span class="read-only-value">A Coppie</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

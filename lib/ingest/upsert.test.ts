@@ -1,34 +1,10 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { PGlite } from "@electric-sql/pglite";
 import { and, eq } from "drizzle-orm";
-import type { PgTable } from "drizzle-orm/pg-core";
-import { drizzle } from "drizzle-orm/pglite";
+import type { SQLiteTable } from "drizzle-orm/sqlite-core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import * as schema from "@/db/schema";
 import type { NormalizedScrape } from "@/lib/scrapers/types";
+import { createTestDb } from "@/lib/test/sqlite-harness";
 import { type PersistDb, persistScrape } from "./upsert";
-
-const MIGRATIONS_DIR = join(__dirname, "..", "..", "db");
-
-/**
- * Apply the generated drizzle migrations to a fresh database by executing the
- * raw SQL. Files are split on drizzle's `--> statement-breakpoint` marker and
- * run in filename order (0000 auth → 0001 domain).
- */
-async function applySchema(client: PGlite): Promise<void> {
-  const files = ["0000_clever_sage.sql", "0001_shocking_marvel_apes.sql"];
-  for (const file of files) {
-    const raw = readFileSync(join(MIGRATIONS_DIR, file), "utf-8");
-    const statements = raw
-      .split("--> statement-breakpoint")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-    for (const statement of statements) {
-      await client.exec(statement);
-    }
-  }
-}
 
 /** A representative pmg-style SQUADRE scrape: 2 teams, rosters with ponies. */
 function buildScrape(): NormalizedScrape {
@@ -101,21 +77,19 @@ function buildScrape(): NormalizedScrape {
   };
 }
 
-describe("persistScrape — pglite integration", () => {
-  let client: PGlite;
+describe("persistScrape — SQLite integration", () => {
   let db: PersistDb;
+  let close: () => void;
 
-  beforeEach(async () => {
-    client = new PGlite();
-    await applySchema(client);
-    db = drizzle(client, { schema }) as unknown as PersistDb;
+  beforeEach(() => {
+    ({ db, close } = createTestDb());
   });
 
-  afterEach(async () => {
-    await client.close();
+  afterEach(() => {
+    close();
   });
 
-  const count = (table: PgTable): Promise<number> =>
+  const count = (table: SQLiteTable): Promise<number> =>
     db
       .select()
       .from(table)
@@ -197,6 +171,54 @@ describe("persistScrape — pglite integration", () => {
       .from(schema.result)
       .where(eq(schema.result.participantId, winner.id));
     expect(rows).toHaveLength(1);
-    expect(Number(rows[0].pointsTotal)).toBe(51);
+    // Stored as integer cents: 51.00 → 5100.
+    expect(rows[0].pointsTotalCents).toBe(5100);
+  });
+
+  // ---------------------------------------------------------------------------
+  // MONEY-AS-CENTS round-trip (A4/A8/A13)
+  // ---------------------------------------------------------------------------
+
+  it("stores decimal scores as integer cents (no float drift)", async () => {
+    // Arrange / Act
+    await persistScrape(buildScrape(), db);
+    // Assert — 48.5 → 4850, 40 → 4000; per-game 24.5 → 2450, 24 → 2400.
+    const [winner] = await db
+      .select()
+      .from(schema.participant)
+      .where(eq(schema.participant.normalizedLabel, "rusgheddu"))
+      .limit(1);
+    const [row] = await db
+      .select()
+      .from(schema.result)
+      .where(eq(schema.result.participantId, winner.id))
+      .limit(1);
+    expect(row.pointsTotalCents).toBe(4850);
+    expect(Number.isInteger(row.pointsTotalCents)).toBe(true);
+
+    const gameRows = await db
+      .select()
+      .from(schema.gameResult)
+      .where(eq(schema.gameResult.resultId, row.id));
+    const cents = gameRows.map((g) => g.pointsCents).sort((a, b) => a - b);
+    expect(cents).toEqual([2400, 2450]);
+    for (const c of cents) expect(Number.isInteger(c)).toBe(true);
+  });
+
+  it("round-trips cents back to the original decimal via the read helper", async () => {
+    // The read layer's cents→number helper is the inverse of ingest's toCents.
+    const { toNumber } = await import("@/lib/queries/standings");
+    await persistScrape(buildScrape(), db);
+    const [winner] = await db
+      .select()
+      .from(schema.participant)
+      .where(eq(schema.participant.normalizedLabel, "rusgheddu"))
+      .limit(1);
+    const [row] = await db
+      .select()
+      .from(schema.result)
+      .where(eq(schema.result.participantId, winner.id))
+      .limit(1);
+    expect(toNumber(row.pointsTotalCents)).toBe(48.5);
   });
 });

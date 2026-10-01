@@ -1,0 +1,93 @@
+{
+  // Cloudflare Workers configuration for the OpenNext runtime.
+  //
+  // Consumed by `opennextjs-cloudflare build/preview/deploy` (see package.json)
+  // and by `npx wrangler dev` when previewing the built worker. OpenNext adapts
+  // the standard `next build` output into `.open-next/worker.js`, which exports
+  // ONLY a `fetch` handler. Phase D adds a Cron Trigger, which needs a
+  // `scheduled` handler too, so `main` points at `custom-worker.ts` — a thin
+  // wrapper that re-exports OpenNext's fetch + Durable Objects and adds
+  // `scheduled` (see custom-worker.ts). The wrapper still imports the generated
+  // `.open-next/worker.js`, so `opennextjs-cloudflare build` runs unchanged.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mounted-games",
+  "main": "custom-worker.ts",
+
+  // Serve the Worker on its workers.dev subdomain
+  // (mounted-games.<account-subdomain>.workers.dev) — this is the public URL,
+  // set explicitly so it is not enabled implicitly by default. Preview URLs
+  // (per-version *.workers.dev hostnames) are disabled: this project runs a
+  // single environment, so extra public preview hostnames are not wanted.
+  "workers_dev": true,
+  "preview_urls": false,
+
+  // compatibility_date >= 2026-08-04 => nodejs_compat + nodejs_compat_v2 are the
+  // default runtime, which is what lets cheerio's Node built-ins (buffer/stream)
+  // resolve on Workers (gate C.4 PASSED). The explicit flag keeps it
+  // unambiguous. See design C.4.
+  //
+  // `global_fetch_strictly_public` is REQUIRED by the OpenNext Cloudflare
+  // template (node_modules/@opennextjs/cloudflare/templates/wrangler.jsonc): it
+  // makes the worker's own outbound `fetch()` to its public hostname (the
+  // WORKER_SELF_REFERENCE service, ISR revalidation and the image handler that
+  // calls `env.ASSETS.fetch(absoluteURL)`) resolve against the public edge
+  // instead of looping back internally. Missing it does not cause the deploy
+  // 404 (that is hostname routing — see docs/deploy-cloudflare.md §7), but it is
+  // needed for OpenNext's self-referencing paths to behave on Workers.
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+
+  // OpenNext serves Next.js static/client assets from the build output through
+  // this binding.
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  // OpenNext uses a self-service binding for its internal routing/revalidation.
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "mounted-games"
+    }
+  ],
+
+  // --- D1 (SQLite) -------------------------------------------------------
+  // The request-scoped D1 binding the route/scheduled handlers read as env.DB
+  // via OpenNext's getCloudflareContext() (see lib/runtime/workers-env.ts +
+  // db/index.ts getD1Db). Locally, `wrangler d1 migrations apply DB --local`
+  // seeds a Miniflare-backed SQLite from the Phase A baseline (db/0000_*.sql);
+  // `database_id` is the real remote D1 (physical name mounted-games-db).
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mounted-games-db",
+      "database_id": "a70942c5-6d45-4c02-925e-6fff5553eb26",
+      "migrations_dir": "db"
+    }
+  ],
+
+  // --- KV (Phase D idle gate) -------------------------------------------
+  // The poller idle-gate keys (poller:is-live / poller:next-refresh) live here.
+  // `id` is the real remote namespace (physical name mounted-games-poller-kv);
+  // Miniflare provisions a local namespace for `wrangler dev` / preview.
+  "kv_namespaces": [
+    {
+      "binding": "POLLER_KV",
+      "id": "0f0c5f1cac854e4da983a569d2d548e7"
+    }
+  ],
+
+  // --- Cron Trigger (Phase D — D1) --------------------------------------
+  // Fire the scheduled() handler once a minute. The cadence matches the live
+  // poll interval (lib/ingest/targets.ts DEFAULT_LIVE_POLL_INTERVAL_MS =
+  // 60_000ms): during a live event we want a minute-fresh scoreboard. Off-season
+  // this minute tick is a KV read only (poller:is-live == "0"), NOT a D1 query
+  // (lib/ingest/live-window.ts idle gate) — that is the core cost fix, so a
+  // 1-minute cadence is cheap even year-round. The authoritative live-window
+  // recompute (source-hitting + D1) is throttled separately to every ~5 min via
+  // poller:next-refresh (LIVE_WINDOW_TTL_MS), not on every tick.
+  "triggers": {
+    "crons": ["* * * * *"]
+  }
+}

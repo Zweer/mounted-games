@@ -1,0 +1,27 @@
+# Local Workers secrets for `wrangler dev` / `opennextjs-cloudflare preview`.
+#
+# Copy to `.dev.vars` (gitignored) and fill in real values for local runs.
+# `.dev.vars` is loaded by wrangler into the Worker `env` — the same place the
+# app reads them via `getSecret()` / `getEnv()` (lib/runtime/workers-env.ts), so
+# on Workers these are `env` bindings, NOT `process.env`.
+#
+# In PRODUCTION these are NOT set from a file — the developer uploads each one
+# with `wrangler secret put <NAME>` (see the deploy runbook / package.json).
+# The D1 (`DB`) and KV (`POLLER_KV`) bindings are declared in wrangler.jsonc and
+# are NOT secrets.
+
+# Better Auth. Generate a secret with: openssl rand -base64 32
+BETTER_AUTH_SECRET="replace-with-a-random-32-byte-secret"
+# Public base URL of the deployed app (no trailing slash). Locally the preview
+# URL, in production the Workers/custom domain URL.
+BETTER_AUTH_URL="http://localhost:8787"
+
+# Shared bearer token protecting the manual ingestion routes (/api/poll,
+# /api/seed, /api/admin/reset). The Cron Trigger does NOT use it (the scheduled
+# handler is not publicly routable); it guards only the manual HTTP triggers.
+CRON_SECRET="replace-with-a-random-token"
+
+# Base URLs of the scraped source portals (01-ingestion). Read lazily on Workers
+# via getSecret() because env is request/scheduled-scoped.
+MG_SCOREBOARD_BASE_URL="https://mg-scoreboard.de"
+PMG_LIVESCORE_BASE_URL="https://pmglivescore.altervista.org"

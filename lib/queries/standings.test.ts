@@ -1,39 +1,9 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { PGlite } from "@electric-sql/pglite";
-import { drizzle } from "drizzle-orm/pglite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import * as schema from "@/db/schema";
 import { type PersistDb, persistScrape } from "@/lib/ingest/upsert";
 import type { NormalizedScrape } from "@/lib/scrapers/types";
+import { createTestDb } from "@/lib/test/sqlite-harness";
 import { getCategoryStandings } from "./standings";
-
-const MIGRATIONS_DIR = join(__dirname, "..", "..", "db");
-
-/**
- * Apply the generated drizzle migrations to a fresh database by executing the
- * raw SQL. Split on drizzle's `--> statement-breakpoint` marker, run in filename
- * order (0000 auth → 0001 domain → 0004 ingestion scheduling).
- */
-async function applySchema(client: PGlite): Promise<void> {
-  const files = [
-    "0000_clever_sage.sql",
-    "0001_shocking_marvel_apes.sql",
-    "0002_young_natasha_romanoff.sql",
-    "0003_striped_shen.sql",
-    "0004_smart_ingestion.sql",
-  ];
-  for (const file of files) {
-    const raw = readFileSync(join(MIGRATIONS_DIR, file), "utf-8");
-    const statements = raw
-      .split("--> statement-breakpoint")
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-    for (const statement of statements) {
-      await client.exec(statement);
-    }
-  }
-}
 
 /** A pmg-style SQUADRE scrape: 2 teams, one session, ranked with a game split. */
 function buildScrape(): NormalizedScrape {
@@ -96,24 +66,65 @@ function buildScrape(): NormalizedScrape {
   };
 }
 
+/** A tie scenario: two teams share pointsTotal and rank, both flagged isTie. */
+function buildTieScrape(): NormalizedScrape {
+  const nation = { code: "IT", name: "Italia" };
+  const phase = { kind: "session" as const, ordinal: 1, label: "Sessione 1" };
+  return {
+    source: "pmglivescore",
+    competition: {
+      name: "TROFEO PAREGGIO",
+      groupingKey: "trofeo-pareggio",
+      nation,
+    },
+    category: {
+      format: "team",
+      ageBand: "OPEN",
+      pro: false,
+      label: "Squadre",
+      nativeId: "49000",
+    },
+    participants: [
+      { type: "team", label: "ALPHA", nativeId: "a", nation, members: [] },
+      { type: "team", label: "BETA", nativeId: "b", nation, members: [] },
+    ],
+    results: [
+      {
+        participantLabel: "ALPHA",
+        phase,
+        pointsTotal: 42.25,
+        rank: 1,
+        isTie: true,
+        games: [],
+      },
+      {
+        participantLabel: "BETA",
+        phase,
+        pointsTotal: 42.25,
+        rank: 1,
+        isTie: true,
+        games: [],
+      },
+    ],
+  };
+}
+
 async function seededCategoryId(db: PersistDb): Promise<number> {
   const [cat] = await db.select().from(schema.category).limit(1);
   return cat.id;
 }
 
-describe("getCategoryStandings — pglite integration", () => {
-  let client: PGlite;
+describe("getCategoryStandings — SQLite integration", () => {
   let db: PersistDb;
+  let close: () => void;
 
   beforeEach(async () => {
-    client = new PGlite();
-    await applySchema(client);
-    db = drizzle(client, { schema }) as unknown as PersistDb;
+    ({ db, close } = createTestDb());
     await persistScrape(buildScrape(), db);
   });
 
-  afterEach(async () => {
-    await client.close();
+  afterEach(() => {
+    close();
   });
 
   it("returns the ranked standings with games, phase and payload shape", async () => {
@@ -148,7 +159,7 @@ describe("getCategoryStandings — pglite integration", () => {
     ]);
     const [top] = payload.standings;
     expect(top.rank).toBe(1);
-    expect(top.pointsTotal).toBe(48.5); // numeric cast to number
+    expect(top.pointsTotal).toBe(48.5); // cents → number (4850 / 100)
     expect(top.nation).toEqual({ code: "IT", name: "Italia" });
     expect(top.games).toEqual([
       { name: "Five Flag Race", points: 24.5 },
@@ -197,5 +208,33 @@ describe("getCategoryStandings — pglite integration", () => {
     const payload = await getCategoryStandings(999_999, undefined, db);
     // Assert
     expect(payload).toBeNull();
+  });
+
+  it("preserves decimal precision through cents (24.5 games sum to 48.5)", async () => {
+    // Integer-cents storage keeps the sum exact — no float drift.
+    const categoryId = await seededCategoryId(db);
+    const payload = await getCategoryStandings(categoryId, undefined, db);
+    const top = payload?.standings[0];
+    const gameSum = (top?.games ?? []).reduce((s, g) => s + g.points, 0);
+    expect(gameSum).toBe(48.5);
+    expect(top?.pointsTotal).toBe(gameSum);
+  });
+
+  it("orders tied participants by rank then keeps both isTie flags", async () => {
+    // Fresh DB with a two-way tie at rank 1.
+    close();
+    ({ db, close } = createTestDb());
+    await persistScrape(buildTieScrape(), db);
+    const categoryId = await seededCategoryId(db);
+    const payload = await getCategoryStandings(categoryId, undefined, db);
+    expect(payload).not.toBeNull();
+    if (!payload) return;
+    expect(payload.standings).toHaveLength(2);
+    // Both share rank 1 and the isTie flag; equal integer cents → deterministic.
+    for (const row of payload.standings) {
+      expect(row.rank).toBe(1);
+      expect(row.isTie).toBe(true);
+      expect(row.pointsTotal).toBe(42.25);
+    }
   });
 });

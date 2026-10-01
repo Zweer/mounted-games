@@ -1,6 +1,7 @@
 import { type Cheerio, type CheerioAPI, load } from "cheerio";
 import type { AnyNode } from "domhandler";
 import { cleanDisplay, normalizeKey, parseScore } from "../normalize";
+import { getSecret } from "../runtime/workers-env";
 import { parseListDate, parseUpcomingDate } from "./dates";
 import { fetchHtml } from "./http";
 import { inferLevel } from "./level";
@@ -105,8 +106,17 @@ export const mgScoreboardScraper: Scraper = {
     // Crawl the archive + upcoming + current lists. Each event is seeded as a
     // Toplist entry target; its sub-phases are discovered later when the poller
     // parses that Toplist page. The event page has NO date, so we capture it
-    // here (archive month panels + day badge; upcoming inline dates), preferring
-    // a defined date and never overwriting one with a later dateless sighting.
+    // here and prefer a defined date, never overwriting one with a later
+    // dateless sighting.
+    //
+    // Date sources per list (2026-09-30 re-verification): the archive AND the
+    // main `?seite=upcoming` panel both use German-month panel headings + a
+    // per-event `span.badge` day (`parseArchiveEntries`); the inline
+    // `D. Mon YY` string lives ONLY in the nav-dropdown links
+    // (`parseUpcomingEntries`). We therefore run BOTH parsers over the upcoming
+    // page — the archive-panel path catches the main list, the upcoming path
+    // catches the dropdown — so a main-panel upcoming event is no longer seeded
+    // dateless.
     const byId = new Map<string, string | undefined>();
     const add = (entries: EventEntry[]): void => {
       for (const e of entries) {
@@ -118,7 +128,7 @@ export const mgScoreboardScraper: Scraper = {
 
     try {
       const html = await fetchHtml(
-        `${MG_BASE}/index.php?seite=archiv`,
+        `${mgBase()}/index.php?seite=archiv`,
         signal,
         {
           Cookie: "language=en",
@@ -131,9 +141,12 @@ export const mgScoreboardScraper: Scraper = {
 
     for (const path of ["index.php?seite=upcoming", "index.php"]) {
       try {
-        const html = await fetchHtml(`${MG_BASE}/${path}`, signal, {
+        const html = await fetchHtml(`${mgBase()}/${path}`, signal, {
           Cookie: "language=en",
         });
+        // Main panel: German-month heading + day badge (same shape as archive).
+        add(parseArchiveEntries(html));
+        // Nav-dropdown links: inline `D. Mon YY`.
         add(parseUpcomingEntries(html));
         // Any remaining ids on the page (dateless) still get seeded.
         add(parseEventIds(html).map((id) => ({ id })));
@@ -149,22 +162,30 @@ export const mgScoreboardScraper: Scraper = {
     // The events running now come straight from the index nav's "Current
     // competitions" dropdown (see docs/sources/mg-scoreboard.md). Each is seeded
     // as a Toplist entry target; the poller discovers its live sub-phases later.
-    const html = await fetchHtml(`${MG_BASE}/index.php`, signal, {
+    const html = await fetchHtml(`${mgBase()}/index.php`, signal, {
       Cookie: "language=en",
     });
     return parseCurrentEventIds(html).map((id) => toplistTarget(id));
   },
 };
 
-const MG_BASE = (
-  process.env.MG_SCOREBOARD_BASE_URL ?? "https://www.mg-scoreboard.de"
-).replace(/\/$/, "");
+/**
+ * Source base URL, resolved lazily per call. On Workers, env vars are not
+ * available at module-init (only within a request); reading through `getSecret`
+ * defers the lookup so it works both on Workers and under Node/dev (where it
+ * falls back to `process.env`, then the hardcoded default).
+ */
+function mgBase(): string {
+  return (
+    getSecret("MG_SCOREBOARD_BASE_URL") ?? "https://www.mg-scoreboard.de"
+  ).replace(/\/$/, "");
+}
 
 /** Toplist entry-target for an event id (the seed/live entry point). */
 function toplistTarget(id: string, startsOn?: string): DiscoveredTarget {
   const target: DiscoveredTarget = {
     kind: "toplist",
-    url: `${MG_BASE}/?seite=show_event&id=${id}&seite2=event_points_list_show`,
+    url: `${mgBase()}/?seite=show_event&id=${id}&seite2=event_points_list_show`,
   };
   if (startsOn) target.startsOn = startsOn;
   return target;
@@ -207,9 +228,13 @@ export function parseArchiveEntries(html: string): EventEntry[] {
 }
 
 /**
- * Upcoming list: event links carry an inline date (`… - 19. Aug 26`). Parses the
- * date from each `show_event` anchor's text; ids with no parseable date are
- * still returned (dateless).
+ * Upcoming NAV-DROPDOWN links carry an inline date (`… - 19. Aug 26`). Parses
+ * the date from each `show_event` anchor's text; ids with no parseable date are
+ * still returned (dateless). NOTE (2026-09-30 re-verification): the inline
+ * `D. Mon YY` string appears ONLY in the nav dropdowns — the main
+ * `?seite=upcoming` panel uses German-month headings + day badges like the
+ * archive, so `listEvents` runs {@link parseArchiveEntries} over the upcoming
+ * page too to date the main-panel events.
  */
 export function parseUpcomingEntries(html: string): EventEntry[] {
   const $ = load(html);
@@ -415,12 +440,20 @@ function buildCompetition(title: string, base: string): NormalizedCompetition {
 }
 
 /**
- * Age-band + format tokens that mg bakes into the event title, matched at either
- * end so both suffix bands (`… - U18`, `… Open Individuals`) and prefix bands
+ * Age-band + format tokens mg bakes into the event title, matched at either end
+ * so both suffix bands (`… - U18`, `… Open Individuals`) and prefix bands
  * (`U 12 WPC 2026`, `Open WPC 2026`) are stripped down to the shared event name.
+ *
+ * The band vocabulary is the design's list ENRICHED with the 2026-09-30
+ * re-verification: German `einsteiger` (beginner) and the French club-series
+ * bands (`poussin`/`benjamin`/`minime`/`cadet`/`senior`/`major`, plus
+ * `club elite`) were all seen in real titles but missing from the original
+ * list, so an unlisted band used to survive into the base name and split one
+ * event's bands across two competitions. `club\s?elite` precedes the bare
+ * `elite` alternative so the two-word form is consumed whole.
  */
 const CATEGORY_TOKEN =
-  "u\\s?\\d{1,2}\\s?[ab]?s?|under\\s?\\d{1,2}\\s?[ab]?s?|open(?:\\s?pro)?|ok|pro|reserve|musketeers|25\\s?&\\s?over|novice|intermediate|green\\s?pony|elite|indice\\s?\\d+|teams?|individuals?|pairs?|paires?|squadre|coppie|individuali";
+  "u\\s?\\d{1,2}\\s?[ab]?s?|under\\s?\\d{1,2}\\s?[ab]?s?|open(?:\\s?pro)?|ok|pro|reserve|musketeers|25\\s?&\\s?over|novice|intermediate|green\\s?pony|einsteiger|club\\s?elite|elite|poussins?|benjamins?|minimes?|cadets?|seniors?|major|indice\\s?\\d+|teams?|individuals?|pairs?|paires?|squadre|coppie|individuali";
 const TRAILING_TOKEN = new RegExp(
   `\\s*[-–—:]?\\s*(${CATEGORY_TOKEN})\\s*$`,
   "i",

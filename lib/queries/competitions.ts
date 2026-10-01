@@ -89,7 +89,7 @@ export async function listCompetitions(
       endsOn: competition.endsOn,
       nationName: nation.name,
       level: competition.level,
-      categoryCount: sql<number>`count(distinct ${category.id})::int`.as(
+      categoryCount: sql<number>`count(distinct ${category.id})`.as(
         "category_count",
       ),
     })

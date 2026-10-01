@@ -13,13 +13,14 @@ import type {
 } from "./types";
 
 /**
- * Cast a Drizzle `numeric` cell (returned as a string) to a JS number. Kept here
- * as the single conversion point for the read layer so scores never leak to the
- * client as strings. Non-finite input degrades to 0 rather than NaN.
+ * Cast a stored integer-cents score to a JS number in whole points (4850 → 48.5).
+ * Kept here as the single read-layer conversion point (A8) so scores never leak
+ * to the client as raw cents. Non-finite input degrades to 0 rather than NaN.
  */
-export function toNumber(value: string | number): number {
+export function toNumber(value: number | null): number {
+  if (value === null) return 0;
   const n = typeof value === "number" ? value : Number.parseFloat(value);
-  return Number.isFinite(n) ? n : 0;
+  return Number.isFinite(n) ? n / 100 : 0;
 }
 
 /** Advancement order of phase kinds (session → semifinal → final). */
@@ -65,8 +66,8 @@ function categoryLabel(cat: {
  * category's competition is currently `is_live`. `updatedAt` is the most recent
  * `last_scraped_at` across those same targets, falling back to now.
  *
- * `database` is injectable (defaults to the shared neon-http client, loaded
- * lazily) so this is exercisable against embedded pglite in tests — same pattern
+ * `database` is injectable (defaults to the shared handle from `@/db`, loaded
+ * lazily) so this is exercisable against in-memory SQLite in tests — same pattern
  * as `persistScrape`. Returns `null` when the category does not exist.
  */
 export async function getCategoryStandings(
@@ -121,8 +122,8 @@ export async function getCategoryStandings(
       nationCode: nation.code,
       nationName: nation.name,
       resultId: result.id,
-      pointsTotal: result.pointsTotal,
-      penaltyPoints: result.penaltyPoints,
+      pointsTotal: result.pointsTotalCents,
+      penaltyPoints: result.penaltyPointsCents,
       rank: result.rank,
       isTie: result.isTie,
     })
@@ -148,7 +149,7 @@ export async function getCategoryStandings(
       .select({
         resultId: gameResult.resultId,
         name: game.canonicalName,
-        points: gameResult.points,
+        points: gameResult.pointsCents,
         ordinal: gameResult.ordinal,
       })
       .from(gameResult)
