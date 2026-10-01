@@ -2,7 +2,13 @@ name: Release Please
 
 # Reads conventional commits landed on main and maintains a "release PR" that
 # bumps the version and updates CHANGELOG.md. Merging that release PR creates a
-# git tag (vX.Y.Z) and a GitHub Release — which is what triggers deploy.yml.
+# git tag (vX.Y.Z) and a GitHub Release.
+#
+# The Cloudflare deploy is CHAINED here (not a separate `on: release` workflow):
+# a release created with the default GITHUB_TOKEN does NOT trigger other
+# workflows (GitHub's anti-recursion rule). So on `release_created` we CALL the
+# reusable deploy workflow (deploy.yml) — the deploy steps live there once and
+# are shared with the manual dispatch path.
 
 on:
   push:
@@ -16,10 +22,25 @@ jobs:
   release-please:
     name: Release Please
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Run Release Please
+        id: release
         uses: googleapis/release-please-action@v4
         with:
           # Uses release-please-config.json + .release-please-manifest.json
           # at the repo root. GITHUB_TOKEN is the default Actions token.
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    name: Deploy
+    needs: release-please
+    # Only when this push actually cut a release (i.e. the release PR was merged).
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      # Deploy the exact tag just created, not whatever HEAD of main is now.
+      ref: ${{ needs.release-please.outputs.tag_name }}
+    secrets: inherit
