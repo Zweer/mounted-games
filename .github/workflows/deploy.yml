@@ -1,24 +1,28 @@
 name: Deploy (Cloudflare)
 
-# Fires when a GitHub Release is published — i.e. when the Release Please PR is
-# merged and a vX.Y.Z tag is cut. The checkout resolves to that release's tag,
-# so it deploys exactly the released commit, not whatever HEAD of main is now.
+# Single source of truth for the Cloudflare deploy. Invoked two ways, same steps:
+#   - automatically: called by release-please.yml (`uses:`) when a release is cut
+#     (a release made with the default GITHUB_TOKEN can't trigger an `on: release`
+#     workflow, so release-please calls this one directly);
+#   - manually: `workflow_dispatch` from the Actions tab, for an out-of-release
+#     redeploy (e.g. after rotating a runtime secret).
 #
-# No test gate here: `main` is protected and CI (ci.yml) is a required check on
-# every PR, so the released commit is already verified. Re-testing an identical
-# tree would only add latency.
-#
-# Required repo secrets (Settings -> Secrets and variables -> Actions):
+# Required repo secrets:
 #   CLOUDFLARE_API_TOKEN   — token with Workers Scripts:Edit, D1:Edit, Workers KV:Edit
 #   CLOUDFLARE_ACCOUNT_ID  — your Cloudflare account id
 # Worker RUNTIME secrets (CRON_SECRET, BETTER_AUTH_SECRET, *_BASE_URL) stay as
-# `wrangler secret put ...` on the account — they are NOT set here.
+# `wrangler secret put ...` — NOT set here.
 
 on:
-  release:
-    types: [published]
-  # Manual re-deploy of the current default branch, e.g. after rotating a
-  # runtime secret.
+  # Called by release-please.yml; the caller passes the tag to deploy and the
+  # secrets via `secrets: inherit`.
+  workflow_call:
+    inputs:
+      ref:
+        description: Git ref (tag) to check out and deploy.
+        type: string
+        required: false
+  # Manual redeploy of the default branch from the Actions tab.
   workflow_dispatch:
 
 concurrency:
@@ -34,6 +38,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          # When called with a tag, deploy exactly that released commit; on a
+          # manual dispatch `inputs.ref` is empty → checkout the default branch.
+          ref: ${{ inputs.ref }}
       - uses: actions/setup-node@v5
         with:
           node-version: 24
